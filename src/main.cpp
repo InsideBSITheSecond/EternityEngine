@@ -1,7 +1,24 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "engine/engine.hpp"
+#include "engine/vulkan/vulkan.hpp"
+
+void EternityVoxelEngine::run() {
+	initWindow();
+	initVulkan();
+	//listAvailableExtensions();
+	mainLoop();
+	cleanup();
+}
+
+void EternityVoxelEngine::mainLoop() {
+	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
+		drawFrame();
+	}
+
+	vkDeviceWaitIdle(device);
+}
 
 int main() {
     EternityVoxelEngine Engine;

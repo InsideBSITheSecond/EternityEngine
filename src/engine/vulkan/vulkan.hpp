@@ -1,9 +1,15 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include "data/includes.hpp"
-#include "data/constants.hpp"
-#include "data/structures.hpp"
+#include "../data/includes.hpp"
+#include "../data/constants.hpp"
+#include "../data/structures.hpp"
+
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
 
 #include <vector>
 #include <optional>
@@ -156,6 +162,9 @@ class EternityVoxelEngine{
 
 		void updateUniformBuffer(u_int32_t currentImage);
 		void drawFrame();
+
+		void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 
 };
 
