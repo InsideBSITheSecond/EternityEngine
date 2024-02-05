@@ -1,4 +1,12 @@
 #include "engine.hpp"
+#include "data/constants.hpp"
+#include "data/structures.hpp"
+
+#ifdef NDEBUG
+    const bool enableValidationLayers = false;
+#else
+    const bool enableValidationLayers = true;
+#endif
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
