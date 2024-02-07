@@ -18,8 +18,13 @@ namespace eve {
 				static std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 				static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 			};
+
+			struct Builder {
+				std::vector<Vertex> vertices{};
+				std::vector<uint32_t> indices{};
+			};
 			
-			EveModel(EveDevice &device, const std::vector<Vertex> &vertices);
+			EveModel(EveDevice &device, const EveModel::Builder &builder);
 			~EveModel();
 
 			EveModel(const EveModel&) = delete;
@@ -31,10 +36,16 @@ namespace eve {
 
 		private:
 			void createVertexBuffers(const std::vector<Vertex> &vertices);
+			void createIndexBuffers(const std::vector<uint32_t> &indices);
 
 			EveDevice &eveDevice;
 			VkBuffer vertexBuffer;
 			VkDeviceMemory vertexBufferMemory;
 			uint32_t vertexCount;
+
+			bool hasIndexBuffer = false;
+			VkBuffer indexBuffer;
+			VkDeviceMemory indexBufferMemory;
+			uint32_t indexCount;
 	};
 }
