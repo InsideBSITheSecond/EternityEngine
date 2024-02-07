@@ -5,6 +5,7 @@
 #include "eve_window.hpp"
 #include "eve_game_object.hpp"
 #include "eve_renderer.hpp"
+#include "eve_camera.hpp"
 
 // std
 #include <memory>
@@ -20,7 +21,7 @@ namespace eve {
 			SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 			SimpleRenderSystem &operator=(const SimpleRenderSystem&) = delete;
 
-			void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<EveGameObject> &gameObjects);
+			void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<EveGameObject> &gameObjects, const EveCamera &camera);
 		private:
 			void createPipelineLayout();
 			void createPipeline(VkRenderPass renderPass);

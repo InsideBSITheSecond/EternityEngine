@@ -20,6 +20,7 @@ namespace eve {
 			EveRenderer &operator=(const EveRenderer&) = delete;
 
 			VkRenderPass getSwapChainRenderPass() const { return eveSwapChain->getRenderPass(); }
+			float getAspectRatio() const { return eveSwapChain->extentAspectRatio(); }
  			bool isFrameInProgress() const { return isFrameStarted; }
 
 			VkCommandBuffer getCurrentCommandBuffer() const {
