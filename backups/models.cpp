@@ -5,6 +5,8 @@
 #include <tiny_obj_loader.h>
 #endif
 
+const std::string MODEL_PATH = "models/cube.obj";
+
 void EternityVoxelEngine::loadModel() {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;

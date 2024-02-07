@@ -88,3 +88,20 @@ void EternityVoxelEngine::createSyncObjects() {
 		}
 	}
 }
+
+void EternityVoxelEngine::run() {
+	initWindow();
+	initVulkan();
+	//listAvailableExtensions();
+	mainLoop();
+	cleanup();
+}
+
+void EternityVoxelEngine::mainLoop() {
+	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
+		drawFrame();
+	}
+
+	vkDeviceWaitIdle(device);
+}

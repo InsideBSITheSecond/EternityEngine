@@ -5,6 +5,8 @@
 #include <stb_image.h>
 #endif
 
+const std::string TEXTURE_PATH = "textures/viking_room.png";
+
 void EternityVoxelEngine::createTextureImage() {
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);

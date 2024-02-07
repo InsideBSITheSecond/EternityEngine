@@ -1,0 +1,7 @@
+raytracing:
+	ray marching since voxels
+	=> ray march in compute shaders
+
+voxel data to gpu:
+	octrees
+	=> pass that to gpu as a buffer somehow
