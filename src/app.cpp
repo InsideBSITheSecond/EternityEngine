@@ -64,11 +64,17 @@ namespace eve
 	void App::loadGameObjects()
 	{
 		std::shared_ptr<EveModel> eveModel = EveModel::createModelFromFile(eveDevice, "models/smooth_vase.obj");
+		auto smoothVase = EveGameObject::createGameObject();
+		smoothVase.model = eveModel;
+		smoothVase.transform.translation = {-.5f, .5f, 2.5f};
+		smoothVase.transform.scale = {3.f, 1.5f, 3.f};
+		gameObjects.push_back(std::move(smoothVase));
 
-		auto gameObject = EveGameObject::createGameObject();
-		gameObject.model = eveModel;
-		gameObject.transform.translation = {.0f, .0f, 2.5f};
-		gameObject.transform.scale = glm::vec3(3.f);
-		gameObjects.push_back(std::move(gameObject));
+		eveModel = EveModel::createModelFromFile(eveDevice, "models/flat_vase.obj");
+		auto flatVase = EveGameObject::createGameObject();
+		flatVase.model = eveModel;
+		flatVase.transform.translation = {.5f, .5f, 2.5f};
+		flatVase.transform.scale = {3.f, 1.5f, 3.f};
+		gameObjects.push_back(std::move(flatVase));
 	}
 }
