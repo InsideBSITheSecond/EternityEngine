@@ -19,6 +19,8 @@ namespace eve {
 			bool wasWindowResized() { return framebufferResized; }
 			void resetWindowResizedFlag() { framebufferResized = false; }
 
+			GLFWwindow *getGLFWwindow() const { return window; }
+
 			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 		private:
 			static void framebufferResizedCallback(GLFWwindow *window, int width, int height);
