@@ -8,6 +8,7 @@ message("CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+set(INCL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/libs")
 file(GLOB SHADERS "${SHADERS_IN_DIR}/*.vert" "${SHADERS_IN_DIR}/*.frag")
 file(MAKE_DIRECTORY ${SHADERS_OUT_DIR})
 foreach(SHADER ${SHADERS})
@@ -64,3 +65,4 @@ target_link_libraries(${PROJECT_NAME} -lXxf86vm)
 target_link_libraries(${PROJECT_NAME} -lXrandr)
 target_link_libraries(${PROJECT_NAME} -lXi)
 
+include_directories(${PROJECT_NAME} ${INCL_DIR})
