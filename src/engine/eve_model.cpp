@@ -12,10 +12,13 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace std {
+namespace std
+{
 	template <>
-	struct hash<eve::EveModel::Vertex> {
-		size_t operator()(eve::EveModel::Vertex const &vertex) const {
+	struct hash<eve::EveModel::Vertex>
+	{
+		size_t operator()(eve::EveModel::Vertex const &vertex) const
+		{
 			size_t seed = 0;
 			eve::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
 			return seed;
@@ -33,14 +36,6 @@ namespace eve
 
 	EveModel::~EveModel()
 	{
-		vkDestroyBuffer(eveDevice.device(), vertexBuffer, nullptr);
-		vkFreeMemory(eveDevice.device(), vertexBufferMemory, nullptr);
-
-		if (hasIndexBuffer)
-		{
-			vkDestroyBuffer(eveDevice.device(), indexBuffer, nullptr);
-			vkFreeMemory(eveDevice.device(), indexBufferMemory, nullptr);
-		}
 	}
 
 	std::unique_ptr<EveModel> EveModel::createModelFromFile(EveDevice &device, const std::string &filepath)
@@ -57,32 +52,25 @@ namespace eve
 		assert(vertexCount >= 3 && "Vertex count must be at least 3");
 		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-
-		eveDevice.createBuffer(
-			bufferSize,
+		uint32_t vertexSize = sizeof(vertices[0]);
+		EveBuffer stagingBuffer{
+			eveDevice,
+			vertexSize,
+			vertexCount,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory);
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
 
-		void *data;
-		vkMapMemory(eveDevice.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-		vkUnmapMemory(eveDevice.device(), stagingBufferMemory);
+		stagingBuffer.map();
+		stagingBuffer.writeToBuffer((void *)vertices.data());
 
-		eveDevice.createBuffer(
-			bufferSize,
+		vertexBuffer = std::make_unique<EveBuffer>(
+			eveDevice,
+			vertexSize,
+			vertexCount,
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			vertexBuffer,
-			vertexBufferMemory);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		eveDevice.copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
-
-		vkDestroyBuffer(eveDevice.device(), stagingBuffer, nullptr);
-		vkFreeMemory(eveDevice.device(), stagingBufferMemory, nullptr);
+		eveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
 	}
 
 	void EveModel::createIndexBuffers(const std::vector<uint32_t> &indices)
@@ -95,43 +83,37 @@ namespace eve
 
 		VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
+		uint32_t indexSize = sizeof(indices[0]);
 
-		eveDevice.createBuffer(
-			bufferSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory);
+		EveBuffer stagingBuffer{
+			eveDevice,
+			indexSize,
+			indexCount,
+						VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
 
-		void *data;
-		vkMapMemory(eveDevice.device(), stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-		vkUnmapMemory(eveDevice.device(), stagingBufferMemory);
+		stagingBuffer.map();
+		stagingBuffer.writeToBuffer((void *)indices.data());
 
-		eveDevice.createBuffer(
-			bufferSize,
+		indexBuffer = std::make_unique<EveBuffer>(
+			eveDevice,
+			indexSize,
+			indexCount,
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			indexBuffer,
-			indexBufferMemory);
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		eveDevice.copyBuffer(stagingBuffer, indexBuffer, bufferSize);
-
-		vkDestroyBuffer(eveDevice.device(), stagingBuffer, nullptr);
-		vkFreeMemory(eveDevice.device(), stagingBufferMemory, nullptr);
+		eveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
 	}
 
 	void EveModel::bind(VkCommandBuffer commandBuffer)
 	{
-		VkBuffer buffers[] = {vertexBuffer};
+		VkBuffer buffers[] = {vertexBuffer->getBuffer()};
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
 		if (hasIndexBuffer)
 		{
-			vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		}
 	}
 
@@ -219,7 +201,8 @@ namespace eve
 					};
 				}
 
-				if (uniqueVertices.count(vertex) == 0) {
+				if (uniqueVertices.count(vertex) == 0)
+				{
 					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 					vertices.push_back(vertex);
 				}

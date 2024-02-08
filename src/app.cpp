@@ -2,6 +2,7 @@
 #include "engine/simple_render_system.hpp"
 #include "engine/eve_camera.hpp"
 #include "engine/eve_keyboard.hpp"
+#include "engine/eve_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -18,6 +19,10 @@ namespace eve
 
 	App::App()
 	{
+		globalPool = EveDescriptorPool::Builder(eveDevice)
+			.setMaxSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, EveSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.build();
 		loadGameObjects();
 	}
 
@@ -27,7 +32,30 @@ namespace eve
 
 	void App::run()
 	{
-		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass()};
+		std::vector<std::unique_ptr<EveBuffer>> uboBuffers(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < uboBuffers.size(); i++) {
+			uboBuffers[i] = std::make_unique<EveBuffer>(
+				eveDevice,
+				sizeof(GlobalUbo),
+				1,
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+			uboBuffers[i]->map();
+		}
+
+		auto globalSetLayout = EveDescriptorSetLayout::Builder(eveDevice)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+			.build();
+
+		std::vector<VkDescriptorSet> globalDescriptorSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
+		for (int i = 0; i < globalDescriptorSets.size(); i++) {
+			auto bufferInfo = uboBuffers[i]->descriptorInfo();
+			EveDescriptorWriter(*globalSetLayout, *globalPool)
+				.writeBuffer(0, &bufferInfo)
+				.build(globalDescriptorSets[i]);
+		}
+
+		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		EveCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
@@ -51,8 +79,23 @@ namespace eve
 			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
+				int frameIndex = eveRenderer.getFrameIndex();
+				FrameInfo frameInfo{
+					frameIndex,
+					frameTime,
+					commandBuffer,
+					camera,
+					globalDescriptorSets[frameIndex]};
+
+				// update
+				GlobalUbo ubo{};
+				ubo.projectionView = camera.getProjection() * camera.getView();
+				uboBuffers[frameIndex]->writeToBuffer(&ubo);
+				uboBuffers[frameIndex]->flush();
+
+				// render
 				eveRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
+				simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
 			}

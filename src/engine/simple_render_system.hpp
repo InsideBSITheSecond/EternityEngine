@@ -6,6 +6,7 @@
 #include "eve_game_object.hpp"
 #include "eve_renderer.hpp"
 #include "eve_camera.hpp"
+#include "eve_frame_info.hpp"
 
 // std
 #include <memory>
@@ -15,15 +16,15 @@ namespace eve {
 	class SimpleRenderSystem {
 		public:
 
-			SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass);
+			SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
 			~SimpleRenderSystem();
 
 			SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 			SimpleRenderSystem &operator=(const SimpleRenderSystem&) = delete;
 
-			void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<EveGameObject> &gameObjects, const EveCamera &camera);
+			void renderGameObjects(FrameInfo &frameInfo, std::vector<EveGameObject> &gameObjects);
 		private:
-			void createPipelineLayout();
+			void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
 			void createPipeline(VkRenderPass renderPass);
 
 			EveDevice &eveDevice;

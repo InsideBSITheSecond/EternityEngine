@@ -1,6 +1,7 @@
 #pragma once
 
 #include "eve_device.hpp"
+#include "eve_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -50,13 +51,13 @@ namespace eve {
 			void createIndexBuffers(const std::vector<uint32_t> &indices);
 
 			EveDevice &eveDevice;
-			VkBuffer vertexBuffer;
-			VkDeviceMemory vertexBufferMemory;
+			
+			std::unique_ptr<EveBuffer> vertexBuffer;
 			uint32_t vertexCount;
 
 			bool hasIndexBuffer = false;
-			VkBuffer indexBuffer;
-			VkDeviceMemory indexBufferMemory;
+
+			std::unique_ptr<EveBuffer> indexBuffer;
 			uint32_t indexCount;
 	};
 }
