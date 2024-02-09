@@ -22,6 +22,7 @@ namespace eve {
 			GLFWwindow *getGLFWwindow() const { return window; }
 
 			void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
+
 		private:
 			static void framebufferResizedCallback(GLFWwindow *window, int width, int height);
 			void initWindow();

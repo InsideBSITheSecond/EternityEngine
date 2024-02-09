@@ -77,6 +77,8 @@ class EveDescriptorPool {
 
   void resetPool();
 
+  VkDescriptorPool *getDescriptorPool() { return &descriptorPool; }
+
  private:
   EveDevice &eveDevice;
   VkDescriptorPool descriptorPool;

@@ -4,11 +4,16 @@
 #include "engine/eve_buffer.hpp"
 #include "engine/systems/simple_render_system.hpp"
 #include "engine/systems/point_light_system.hpp"
+#include "engine/systems/imgui_system.hpp"
+
+#include "engine/imgui/imgui_impl_glfw.h"
+#include "engine/imgui/imgui_impl_vulkan.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+
 
 #include <array>
 #include <stdexcept>
@@ -25,6 +30,12 @@ namespace eve
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, EveSwapChain::MAX_FRAMES_IN_FLIGHT)
 			.build();
 		loadGameObjects();
+		createImGui();
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow();
+		ImGui::Render();
 	}
 
 	App::~App()
@@ -58,6 +69,7 @@ namespace eve
 
 		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		PointLightSystem pointLightSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+		ImGuiSystem imGuiSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
 		EveCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
@@ -106,6 +118,7 @@ namespace eve
 				// order here matters
 				simpleRenderSystem.renderGameObjects(frameInfo);
 				pointLightSystem.render(frameInfo);
+				imGuiSystem.render(frameInfo);
 				
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
@@ -157,5 +170,34 @@ namespace eve
 			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-1.f, -1.f, -1.f, 1.f));
 			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 		}
+	}
+
+	void App::createImGui() {
+		// Setup Dear ImGui context
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+		// Setup Dear ImGui style
+		ImGui::StyleColorsDark();
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplGlfw_InitForVulkan(eveWindow.getGLFWwindow(), true);
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		init_info.Instance = eveDevice.getInstance();
+		init_info.PhysicalDevice = eveDevice.getPhysicalDevice();
+		init_info.Device = eveDevice.device();
+		init_info.QueueFamily = 1;
+		init_info.Queue = eveDevice.graphicsQueue();
+		init_info.PipelineCache = VK_NULL_HANDLE;
+		init_info.DescriptorPool = *globalPool->getDescriptorPool();
+		init_info.Allocator = nullptr;
+		init_info.MinImageCount = 1;
+		init_info.ImageCount = EveSwapChain::MAX_FRAMES_IN_FLIGHT;
+		init_info.CheckVkResultFn = nullptr;
+		ImGui_ImplVulkan_Init(&init_info, eveRenderer.getSwapChainRenderPass());
+		ImGui_ImplVulkan_CreateFontsTexture();
 	}
 }

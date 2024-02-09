@@ -37,8 +37,10 @@ class EveDevice {
   EveDevice(EveDevice &&) = delete;
   EveDevice &operator=(EveDevice &&) = delete;
 
+  VkInstance getInstance() { return instance; };
   VkCommandPool getCommandPool() { return commandPool; }
   VkDevice device() { return device_; }
+  VkPhysicalDevice getPhysicalDevice() { return physicalDevice; }
   VkSurfaceKHR surface() { return surface_; }
   VkQueue graphicsQueue() { return graphicsQueue_; }
   VkQueue presentQueue() { return presentQueue_; }
