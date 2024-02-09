@@ -102,8 +102,11 @@ namespace eve
 
 				// render
 				eveRenderer.beginSwapChainRenderPass(commandBuffer);
+
+				// order here matters
 				simpleRenderSystem.renderGameObjects(frameInfo);
 				pointLightSystem.render(frameInfo);
+				
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
 			}

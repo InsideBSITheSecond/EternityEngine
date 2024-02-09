@@ -8,6 +8,7 @@
 #include <array>
 #include <stdexcept>
 #include <iostream>
+#include <map>
 
 namespace eve
 {
@@ -56,6 +57,7 @@ namespace eve
 
 		PipelineConfigInfo pipelineConfig{};
 		EvePipeline::defaultPipelineConfigInfo(pipelineConfig);
+		EvePipeline::enableAlphaBlending(pipelineConfig);
 		pipelineConfig.attributeDescriptions.clear();
 		pipelineConfig.bindingDescriptions.clear();
 		pipelineConfig.renderPass = renderPass;
@@ -81,8 +83,10 @@ namespace eve
 
 			assert(lightIndex < MAX_LIGHTS && "Exceeded MAX_LIGHTS limits");
 
-			obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
+			// update light position
+			//obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
 
+			// copy lights to ubo
 			ubo.pointLights[lightIndex].position = glm::vec4(obj.transform.translation, 1.f);
 			ubo.pointLights[lightIndex].color = glm::vec4(obj.color, obj.pointLightComponent->lightIntensity);
 
@@ -93,6 +97,19 @@ namespace eve
 
 	void PointLightSystem::render(FrameInfo &frameInfo)
 	{
+		// sort lights
+		std::map<float, EveGameObject::id_t> sorted;
+		for (auto& kv: frameInfo.gameObjects) {
+			auto& obj = kv.second;
+			if (obj.pointLightComponent == nullptr) continue;
+
+			// calculate distance
+			auto offset = frameInfo.camera.getPosition() - obj.transform.translation;
+			float distSquared = glm::dot(offset, offset);
+			sorted[distSquared] = obj.getId();
+		}
+
+
 		evePipeline->bind(frameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(
@@ -103,9 +120,10 @@ namespace eve
 			&frameInfo.globalDescriptorSet,
 			0, nullptr);
 
-		for (auto& kv: frameInfo.gameObjects) {
-			auto& obj = kv.second;
-			if (obj.pointLightComponent == nullptr) continue;
+		// iterated through sorted lights in reverse order
+		for (auto it = sorted.rbegin(); it != sorted.rend(); it++) {
+			//use game obj id to find light object
+			auto& obj = frameInfo.gameObjects.at(it->second);
 
 			PointLightPushConstants push{};
 			push.position = glm::vec4(obj.transform.translation, 1.f);
