@@ -44,7 +44,7 @@ namespace eve
 		}
 
 		auto globalSetLayout = EveDescriptorSetLayout::Builder(eveDevice)
-			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
 			.build();
 
 		std::vector<VkDescriptorSet> globalDescriptorSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -76,7 +76,7 @@ namespace eve
 			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
 			float aspect = eveRenderer.getAspectRatio();
-			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
+			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f); 
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
 				int frameIndex = eveRenderer.getFrameIndex();
@@ -85,7 +85,8 @@ namespace eve
 					frameTime,
 					commandBuffer,
 					camera,
-					globalDescriptorSets[frameIndex]};
+					globalDescriptorSets[frameIndex],
+					gameObjects};
 
 				// update
 				GlobalUbo ubo{};
@@ -95,7 +96,7 @@ namespace eve
 
 				// render
 				eveRenderer.beginSwapChainRenderPass(commandBuffer);
-				simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+				simpleRenderSystem.renderGameObjects(frameInfo);
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
 			}
@@ -109,15 +110,22 @@ namespace eve
 		std::shared_ptr<EveModel> eveModel = EveModel::createModelFromFile(eveDevice, "models/smooth_vase.obj");
 		auto smoothVase = EveGameObject::createGameObject();
 		smoothVase.model = eveModel;
-		smoothVase.transform.translation = {-.5f, .5f, 2.5f};
+		smoothVase.transform.translation = {-.5f, .5f, 0.f};
 		smoothVase.transform.scale = {3.f, 1.5f, 3.f};
-		gameObjects.push_back(std::move(smoothVase));
+		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
 
 		eveModel = EveModel::createModelFromFile(eveDevice, "models/flat_vase.obj");
 		auto flatVase = EveGameObject::createGameObject();
 		flatVase.model = eveModel;
-		flatVase.transform.translation = {.5f, .5f, 2.5f};
+		flatVase.transform.translation = {.5f, .5f, 0.f};
 		flatVase.transform.scale = {3.f, 1.5f, 3.f};
-		gameObjects.push_back(std::move(flatVase));
+		gameObjects.emplace(flatVase.getId(), std::move(flatVase));
+
+		eveModel = EveModel::createModelFromFile(eveDevice, "models/quad.obj");
+		auto floor = EveGameObject::createGameObject();
+		floor.model = eveModel;
+		floor.transform.translation = {0.f, .5f, 0.f};
+		floor.transform.scale = {3.f, 1.f, 3.f};
+		gameObjects.emplace(floor.getId(), std::move(floor));
 	}
 }

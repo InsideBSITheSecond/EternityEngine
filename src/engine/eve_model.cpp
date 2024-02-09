@@ -12,6 +12,10 @@
 #include <iostream>
 #include <unordered_map>
 
+#ifndef ENGINE_DIR
+#define ENGINE_DIR "../"
+#endif
+
 namespace std
 {
 	template <>
@@ -156,6 +160,7 @@ namespace eve
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
+		std::string enginePath = ENGINE_DIR + filepath;
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
 		{
 			throw std::runtime_error(warn + err);
