@@ -1,10 +1,10 @@
 input assembler -> vertex shader -> (tesselation / geometry shader) -> rasterization -> fragment shader -> color blending -> frame buffer
 	(fixed)				(prog)											(fixed)				(prog)			  (fixed)
 
-
-object space -> world space -> camera space -> canonical view volume -> viewport
-	  (model transf)  (camera transf) (projection transf)    (viewport transf)
-
 (fixed): little control
 (prog): runs custom c-like code on the gpu (shaders)
 
+--------------------------
+
+object space -> world space -> camera space -> canonical view volume -> viewport
+	  (model transf)  (camera transf) (projection transf)    (viewport transf)
