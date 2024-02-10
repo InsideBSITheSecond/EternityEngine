@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <map>
+
 #include "../imgui/imgui_impl_vulkan.h"
 
 namespace eve
@@ -94,6 +95,5 @@ namespace eve
 			&push
 		);
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameInfo.commandBuffer);
-		//vkCmdDraw(frameInfo.commandBuffer, 6, 1, 0, 0);
 	}
 }

@@ -2,9 +2,9 @@
 
 #include "engine/eve_device.hpp"
 #include "engine/eve_window.hpp"
-#include "engine/eve_game_object.hpp"
 #include "engine/eve_renderer.hpp"
 #include "engine/eve_descriptors.hpp"
+#include "engine/game/eve_game_object.hpp"
 
 #include "libs/imgui.h"
 
