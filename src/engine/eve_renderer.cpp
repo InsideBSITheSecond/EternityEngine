@@ -91,6 +91,7 @@ namespace eve {
 		auto result = eveSwapChain->submitCommandBuffers(&commandBuffer, &currentImageIndex);
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || eveWindow.wasWindowResized()) {
 			recreateSwapChain();
+			return;
 		}
 		if (result != VK_SUCCESS) {
 			throw std::runtime_error("failed to present swap chain image");
