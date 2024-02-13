@@ -84,7 +84,7 @@ namespace eve
 			assert(lightIndex < MAX_LIGHTS && "Exceeded MAX_LIGHTS limits");
 
 			// update light position
-			//obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
+			obj.transform.translation = glm::vec3(rotateLight * glm::vec4(obj.transform.translation, 1.f));
 
 			// copy lights to ubo
 			ubo.pointLights[lightIndex].position = glm::vec4(obj.transform.translation, 1.f);
