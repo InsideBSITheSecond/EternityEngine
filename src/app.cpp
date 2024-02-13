@@ -136,6 +136,13 @@ namespace eve
 		smoothVase.transform.scale = {3.f, 1.5f, 3.f};
 		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
 
+		eveModel = EveModel::createModelFromFile(eveDevice, "models/human.obj");
+		auto dude = EveGameObject::createGameObject();
+		dude.model = eveModel;
+		dude.transform.translation = {-.5f, .5f, 0.f};
+		dude.transform.scale = {3.f, 1.5f, 3.f};
+		gameObjects.emplace(dude.getId(), std::move(dude));
+
 		eveModel = EveModel::createModelFromFile(eveDevice, "models/flat_vase.obj");
 		auto flatVase = EveGameObject::createGameObject();
 		flatVase.model = eveModel;
