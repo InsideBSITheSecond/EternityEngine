@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../eve_device.hpp"
-#include "../eve_buffer.hpp"
+#include "../device/eve_device.hpp"
+#include "../utils/eve_buffer.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

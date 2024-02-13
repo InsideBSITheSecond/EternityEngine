@@ -1,6 +1,6 @@
 #pragma once
 
-#include "eve_window.hpp"
+#include "../eve_window.hpp"
 
 // std lib headers
 #include <string>

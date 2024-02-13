@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../eve_device.hpp"
+#include "../device/eve_device.hpp"
 #include "../eve_window.hpp"
 #include "eve_swap_chain.hpp"
 

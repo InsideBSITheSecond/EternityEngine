@@ -1,6 +1,6 @@
 #pragma once
 
-#include "engine/eve_device.hpp"
+#include "engine/device/eve_device.hpp"
 #include "engine/eve_window.hpp"
 #include "engine/game/eve_game_object.hpp"
 #include "engine/game/eve_debug.hpp"
@@ -10,13 +10,13 @@
 // std
 #include <memory>
 #include <vector>
+#include "engine/game/eve_terrain.hpp"
 
 namespace eve {
 	class App {
 		public:
 			static constexpr int WIDTH = 800;
 			static constexpr int HEIGHT = 600;
-			static constexpr char *WINDOW_TITLE = "Eternity Voxel Engine";
 
 			App();
 			~App();
@@ -28,7 +28,7 @@ namespace eve {
 		private:
 			void loadGameObjects();
 
-			EveWindow eveWindow{WIDTH, HEIGHT, WINDOW_TITLE};
+			EveWindow eveWindow{WIDTH, HEIGHT, "Eternity Voxel Engine"};
 			EveDevice eveDevice{eveWindow};
 			EveRenderer eveRenderer{eveWindow, eveDevice};
 
@@ -36,6 +36,7 @@ namespace eve {
 			// note: order of declarations matters
 			std::unique_ptr<EveDescriptorPool> globalPool{};
 			EveGameObject::Map gameObjects;
-			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool};
+			EveTerrain eveTerrain{};
+			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 	};
 }

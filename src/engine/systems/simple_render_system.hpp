@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../eve_device.hpp"
+#include "../device/eve_device.hpp"
 #include "../rendering/eve_pipeline.hpp"
 #include "../eve_window.hpp"
 #include "../rendering/eve_renderer.hpp"
-#include "../eve_frame_info.hpp"
+#include "../data/eve_frame_info.hpp"
 #include "../game/eve_camera.hpp"
 #include "../game/eve_game_object.hpp"
 

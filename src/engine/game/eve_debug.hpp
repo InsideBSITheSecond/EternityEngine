@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../eve_device.hpp"
-#include "../eve_buffer.hpp"
+#include "../device/eve_device.hpp"
+#include "../utils/eve_buffer.hpp"
 #include "../rendering/eve_renderer.hpp"
 #include "../rendering/eve_descriptors.hpp"
 
@@ -16,6 +16,7 @@
 #include "../../libs/imgui/imgui_impl_glfw.h"
 #include "../../libs/implot/implot.h"
 #include "eve_game_object.hpp"
+#include "eve_terrain.hpp"
 
 namespace eve {
 	class EveDebug {
@@ -36,7 +37,7 @@ namespace eve {
 				}
 			};
 			
-			EveDebug(EveWindow &window, EveRenderer &renderer, EveDevice &device, std::unique_ptr<EveDescriptorPool> &pool);
+			EveDebug(EveWindow &window, EveRenderer &renderer, EveDevice &device, std::unique_ptr<EveDescriptorPool> &pool, EveTerrain &terrain);
 			~EveDebug();
 
 			EveDebug(const EveDebug&) = delete;
@@ -65,6 +66,7 @@ namespace eve {
 			EveWindow &eveWindow;
 			EveRenderer &eveRenderer;
 			EveDevice &eveDevice;
+			EveTerrain &eveTerrain;
 			std::unique_ptr<EveDescriptorPool> &globalPool;
 	};
 }

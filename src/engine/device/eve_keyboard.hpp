@@ -1,6 +1,6 @@
 #pragma once
 
-#include "game/eve_game_object.hpp"
+#include "../game/eve_game_object.hpp"
 
 namespace eve
 {

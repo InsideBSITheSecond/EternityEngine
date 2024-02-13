@@ -1,5 +1,5 @@
 #include "eve_model.hpp"
-#include "../eve_utils.hpp"
+#include "../utils/eve_utils.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../../libs/tiny_obj_loader/tiny_obj_loader.h"

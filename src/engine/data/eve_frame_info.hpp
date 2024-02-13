@@ -1,10 +1,11 @@
 #pragma once
 
-#include "game/eve_camera.hpp"
-#include "game/eve_game_object.hpp"
-#include "game/eve_debug.hpp"
+#include "../game/eve_camera.hpp"
+#include "../game/eve_game_object.hpp"
+#include "../game/eve_debug.hpp"
 
 #include <vulkan/vulkan.h>
+#include "../game/eve_terrain.hpp"
 
 namespace eve {
 	#define MAX_LIGHTS 10
@@ -34,5 +35,6 @@ namespace eve {
 		VkDescriptorSet globalDescriptorSet;
 		EveGameObject::Map &gameObjects;
 		EveDebug &debugMenu;
+		EveTerrain &terrain;
 	};
 }

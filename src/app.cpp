@@ -1,6 +1,6 @@
 #include "app.hpp"
-#include "engine/eve_keyboard.hpp"
-#include "engine/eve_buffer.hpp"
+#include "engine/device/eve_keyboard.hpp"
+#include "engine/utils/eve_buffer.hpp"
 #include "engine/systems/simple_render_system.hpp"
 #include "engine/systems/point_light_system.hpp"
 #include "engine/systems/imgui_system.hpp"
@@ -100,7 +100,8 @@ namespace eve
 					camera,
 					globalDescriptorSets[frameIndex],
 					gameObjects,
-					debugMenu};
+					debugMenu,
+					eveTerrain};
 
 				// update
 				GlobalUbo ubo{};

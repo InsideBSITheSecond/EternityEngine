@@ -1,5 +1,5 @@
 #include "eve_debug.hpp"
-#include "../eve_utils.hpp"
+#include "../utils/eve_utils.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
@@ -30,8 +30,8 @@ namespace std
 
 namespace eve
 {
-	EveDebug::EveDebug(EveWindow &window, EveRenderer &renderer, EveDevice &device, std::unique_ptr<EveDescriptorPool> &pool)
-	: eveWindow{window}, eveRenderer{renderer}, eveDevice{device}, globalPool{pool}
+	EveDebug::EveDebug(EveWindow &window, EveRenderer &renderer, EveDevice &device, std::unique_ptr<EveDescriptorPool> &pool, EveTerrain &terrain)
+	: eveWindow{window}, eveRenderer{renderer}, eveDevice{device}, globalPool{pool}, eveTerrain{terrain}
 	{
 		//createVertexBuffers(builder.vertices);
 		//createIndexBuffers(builder.indices);
@@ -331,6 +331,9 @@ namespace eve
 		}
 		
 		if (ImGui::CollapsingHeader("GameObjects")) {
+			if (ImGui::Button("query terrain")){
+				eveTerrain.queryTerrain(glm::vec3(0.f));
+			}
 			for (auto& kv : gameObjects)
 			{
 				auto& obj = kv.second;
