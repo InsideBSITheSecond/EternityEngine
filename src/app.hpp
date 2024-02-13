@@ -16,6 +16,7 @@ namespace eve {
 		public:
 			static constexpr int WIDTH = 800;
 			static constexpr int HEIGHT = 600;
+			static constexpr char *WINDOW_TITLE = "Eternity Voxel Engine";
 
 			App();
 			~App();
@@ -29,7 +30,7 @@ namespace eve {
 		private:
 			void loadGameObjects();
 
-			EveWindow eveWindow{WIDTH, HEIGHT, "Vulkan"};
+			EveWindow eveWindow{WIDTH, HEIGHT, WINDOW_TITLE};
 			EveDevice eveDevice{eveWindow};
 			EveRenderer eveRenderer{eveWindow, eveDevice};
 
