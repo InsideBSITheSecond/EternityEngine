@@ -57,7 +57,7 @@ namespace eve {
 	}
 
 	VkCommandBuffer EveRenderer::beginFrame() {
-		assert(isFrameStarted && "Can't can begin frame while already in progress");
+		//assert(isFrameStarted && "Can't can begin frame while already in progress");
 		
 		auto result = eveSwapChain->acquireNextImage(&currentImageIndex);
 
