@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../eve_model.hpp"
+#include "eve_model.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 

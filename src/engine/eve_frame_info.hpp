@@ -2,6 +2,7 @@
 
 #include "game/eve_camera.hpp"
 #include "game/eve_game_object.hpp"
+#include "game/eve_debug.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -32,5 +33,6 @@ namespace eve {
 		EveCamera &camera;
 		VkDescriptorSet globalDescriptorSet;
 		EveGameObject::Map &gameObjects;
+		EveDebug &debugMenu;
 	};
 }

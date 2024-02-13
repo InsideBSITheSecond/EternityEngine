@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 
+#include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_vulkan.h"
 
 namespace eve
@@ -58,9 +59,9 @@ namespace eve
 
 		PipelineConfigInfo pipelineConfig{};
 		EvePipeline::defaultPipelineConfigInfo(pipelineConfig);
-		//EvePipeline::enableAlphaBlending(pipelineConfig);
-		pipelineConfig.attributeDescriptions.clear();
-		pipelineConfig.bindingDescriptions.clear();
+		EvePipeline::enableAlphaBlending(pipelineConfig);
+		pipelineConfig.attributeDescriptions = EveDebug::Vertex::getAttributeDescriptions();
+		pipelineConfig.bindingDescriptions = EveDebug::Vertex::getBindingDescriptions();;
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		evePipeline = std::make_unique<EvePipeline>(
@@ -70,8 +71,7 @@ namespace eve
 			pipelineConfig);
 	}
 
-	void ImGuiSystem::render(FrameInfo &frameInfo)
-	{
+	void ImGuiSystem::render(FrameInfo &frameInfo) {
 		evePipeline->bind(frameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(
@@ -94,6 +94,8 @@ namespace eve
 			sizeof(ImGuiPushConstants),
 			&push
 		);
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), frameInfo.commandBuffer);
+
+		frameInfo.debugMenu.update(frameInfo.gameObjects, frameInfo.frameTime, frameInfo.frameIndex);
+		frameInfo.debugMenu.draw(frameInfo.commandBuffer);
 	}
 }

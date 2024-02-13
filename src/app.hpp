@@ -5,8 +5,7 @@
 #include "engine/eve_renderer.hpp"
 #include "engine/eve_descriptors.hpp"
 #include "engine/game/eve_game_object.hpp"
-
-#include "libs/imgui.h"
+#include "engine/game/eve_debug.hpp"
 
 // std
 #include <memory>
@@ -15,8 +14,8 @@
 namespace eve {
 	class App {
 		public:
-			static constexpr int WIDTH = 1920;
-			static constexpr int HEIGHT = 1080;
+			static constexpr int WIDTH = 800;
+			static constexpr int HEIGHT = 600;
 
 			App();
 			~App();
@@ -34,8 +33,10 @@ namespace eve {
 			EveDevice eveDevice{eveWindow};
 			EveRenderer eveRenderer{eveWindow, eveDevice};
 
+
 			// note: order of declarations matters
 			std::unique_ptr<EveDescriptorPool> globalPool{};
 			EveGameObject::Map gameObjects;
+			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool};
 	};
 }

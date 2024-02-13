@@ -19,6 +19,8 @@ namespace eve
 			int lookRight = GLFW_KEY_RIGHT;
 			int lookUp = GLFW_KEY_UP;
 			int lookDown = GLFW_KEY_DOWN;
+
+			int toggleDebug = GLFW_KEY_F1;
 		};
 
 		void moveInPlaneXZ(GLFWwindow *window, float dt, EveGameObject &gameObject);

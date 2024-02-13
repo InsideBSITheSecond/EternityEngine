@@ -270,7 +270,7 @@ namespace eve
 		//std::array<VkAttachmentReference, 2> colorAttachmentsRefs = {colorAttachmentRef, imGuiAttachmentRef};
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.colorAttachmentCount = 2;
+		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 

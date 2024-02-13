@@ -1,5 +1,5 @@
 #include "eve_pipeline.hpp"
-#include "eve_model.hpp"
+#include "game/eve_model.hpp"
 
 #include <cassert>
 #include <fstream>

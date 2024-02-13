@@ -11,6 +11,7 @@
 // std
 #include <memory>
 #include <vector>
+#include "../eve_descriptors.hpp"
 
 namespace eve {
 	class ImGuiSystem {
@@ -23,11 +24,13 @@ namespace eve {
 			ImGuiSystem &operator=(const ImGuiSystem&) = delete;
 
 			void render(FrameInfo &frameInfo);
+			
 		private:
 			void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
 			void createPipeline(VkRenderPass renderPass);
 
 			EveDevice &eveDevice;
+
 			std::unique_ptr<EvePipeline> evePipeline;
 			VkPipelineLayout pipelineLayout;
 	};

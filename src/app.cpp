@@ -5,8 +5,6 @@
 #include "engine/systems/point_light_system.hpp"
 #include "engine/systems/imgui_system.hpp"
 #include "engine/game/eve_camera.hpp"
-#include "engine/imgui/imgui_impl_glfw.h"
-#include "engine/imgui/imgui_impl_vulkan.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -18,6 +16,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <chrono>
+#include "engine/imgui/imgui_impl_vulkan.h"
 
 namespace eve
 {
@@ -25,16 +24,12 @@ namespace eve
 	App::App()
 	{
 		globalPool = EveDescriptorPool::Builder(eveDevice)
-			.setMaxSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.setMaxSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT * 2)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, EveSwapChain::MAX_FRAMES_IN_FLIGHT)
+			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, EveDebug::DEBUG_POOL_SIZE)
+			.setPoolFlags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
 			.build();
 		loadGameObjects();
-		createImGui();
-		ImGui_ImplVulkan_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
-		ImGui::Render();
 	}
 
 	App::~App()
@@ -56,6 +51,7 @@ namespace eve
 
 		auto globalSetLayout = EveDescriptorSetLayout::Builder(eveDevice)
 			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)
+			.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)
 			.build();
 
 		std::vector<VkDescriptorSet> globalDescriptorSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
@@ -70,11 +66,13 @@ namespace eve
 		PointLightSystem pointLightSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		ImGuiSystem imGuiSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
+		debugMenu.init();
+
 		EveCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
 		auto viewerObject = EveGameObject::createGameObject();
-		EveKeyboardController cameraController{};
+		EveKeyboardController keyboardController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
@@ -86,7 +84,7 @@ namespace eve
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
 
-			cameraController.moveInPlaneXZ(eveWindow.getGLFWwindow(), frameTime, viewerObject);
+			keyboardController.moveInPlaneXZ(eveWindow.getGLFWwindow(), frameTime, viewerObject);
 			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
 			float aspect = eveRenderer.getAspectRatio();
@@ -100,7 +98,8 @@ namespace eve
 					commandBuffer,
 					camera,
 					globalDescriptorSets[frameIndex],
-					gameObjects};
+					gameObjects,
+					debugMenu};
 
 				// update
 				GlobalUbo ubo{};
@@ -169,34 +168,5 @@ namespace eve
 			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-1.f, -1.f, -1.f, 1.f));
 			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 		}
-	}
-
-	void App::createImGui() {
-		// Setup Dear ImGui context
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-		// Setup Dear ImGui style
-		ImGui::StyleColorsDark();
-
-		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForVulkan(eveWindow.getGLFWwindow(), true);
-		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = eveDevice.getInstance();
-		init_info.PhysicalDevice = eveDevice.getPhysicalDevice();
-		init_info.Device = eveDevice.device();
-		init_info.QueueFamily = 1;
-		init_info.Queue = eveDevice.graphicsQueue();
-		init_info.PipelineCache = VK_NULL_HANDLE;
-		init_info.DescriptorPool = *globalPool->getDescriptorPool();
-		init_info.Allocator = nullptr;
-		init_info.MinImageCount = 1;
-		init_info.ImageCount = EveSwapChain::MAX_FRAMES_IN_FLIGHT;
-		init_info.CheckVkResultFn = nullptr;
-		ImGui_ImplVulkan_Init(&init_info, eveRenderer.getSwapChainRenderPass());
-		ImGui_ImplVulkan_CreateFontsTexture();
 	}
 }
