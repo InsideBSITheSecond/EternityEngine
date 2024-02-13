@@ -24,8 +24,6 @@ namespace eve {
 			App(const App&) = delete;
 			App &operator=(const App&) = delete;
 
-			void createImGui();
-
 			void run();
 		private:
 			void loadGameObjects();
