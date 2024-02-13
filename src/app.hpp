@@ -2,10 +2,10 @@
 
 #include "engine/eve_device.hpp"
 #include "engine/eve_window.hpp"
-#include "engine/eve_renderer.hpp"
-#include "engine/eve_descriptors.hpp"
 #include "engine/game/eve_game_object.hpp"
 #include "engine/game/eve_debug.hpp"
+#include "engine/rendering/eve_renderer.hpp"
+#include "engine/rendering/eve_descriptors.hpp"
 
 // std
 #include <memory>

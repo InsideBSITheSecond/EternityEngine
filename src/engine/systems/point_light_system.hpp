@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../eve_device.hpp"
-#include "../eve_pipeline.hpp"
+#include "../rendering/eve_pipeline.hpp"
 #include "../eve_window.hpp"
-#include "../eve_renderer.hpp"
+#include "../rendering/eve_renderer.hpp"
 #include "../eve_frame_info.hpp"
 #include "../game/eve_game_object.hpp"
 #include "../game/eve_camera.hpp"

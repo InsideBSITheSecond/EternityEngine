@@ -10,8 +10,8 @@
 #include <iostream>
 #include <map>
 
-#include "../imgui/imgui_impl_glfw.h"
-#include "../imgui/imgui_impl_vulkan.h"
+#include "../../libs/imgui/imgui_impl_glfw.h"
+#include "../../libs/imgui/imgui_impl_vulkan.h"
 
 namespace eve
 {

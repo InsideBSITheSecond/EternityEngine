@@ -2,8 +2,8 @@
 
 #include "../eve_device.hpp"
 #include "../eve_buffer.hpp"
-#include "../eve_renderer.hpp"
-#include "../eve_descriptors.hpp"
+#include "../rendering/eve_renderer.hpp"
+#include "../rendering/eve_descriptors.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -12,9 +12,9 @@
 #include <vector>
 #include <memory>
 
-#include "../imgui/imgui_impl_vulkan.h"
-#include "../imgui/imgui_impl_glfw.h"
-#include "../../libs/implot.h"
+#include "../../libs/imgui/imgui_impl_vulkan.h"
+#include "../../libs/imgui/imgui_impl_glfw.h"
+#include "../../libs/implot/implot.h"
 #include "eve_game_object.hpp"
 
 namespace eve {

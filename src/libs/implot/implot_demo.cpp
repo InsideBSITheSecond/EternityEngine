@@ -27,7 +27,7 @@
 #define IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 #endif
 
-#include "../../libs/implot.h"
+#include "implot.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2398,7 +2398,7 @@ void StyleSeaborn() {
 // into the public API and expose the necessary building blocks to fully support
 // custom plotters. For now, proceed at your own risk!
 
-#include "../../libs/implot_internal.h"
+#include "implot_internal.h"
 
 namespace MyImPlot {
 
