@@ -294,8 +294,8 @@ namespace eve
 			static int values_offset = 0;
 			static double refresh_time = 0.0;
 
-			std::cout << frametime << std::endl;
-			std::cout << frameIndex << std::endl;
+			//std::cout << frametime << std::endl;
+			//std::cout << frameIndex << std::endl;
 
 			if (!animate || refresh_time == 0.0)
 				refresh_time = ImGui::GetTime();
@@ -339,7 +339,7 @@ namespace eve
             	ImGui::ColorEdit3("color", glm::value_ptr(obj.color));
 				ImGui::SliderFloat3("translation", glm::value_ptr(obj.transform.translation), -10.f, 10.f);
 				ImGui::SliderFloat3("scale", glm::value_ptr(obj.transform.scale), 0.f, 10.f);
-				ImGui::SliderFloat3("rotation", glm::value_ptr(obj.transform.rotation), -1.f, 1.f);
+				ImGui::SliderFloat3("rotation", glm::value_ptr(obj.transform.rotation), -3.14f, 3.14f);
 				ImGui::PopID();
 			}
 		}
