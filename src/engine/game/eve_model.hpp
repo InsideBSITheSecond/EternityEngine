@@ -10,6 +10,19 @@
 #include <vector>
 #include <memory>
 
+
+/*static std::vector<glm::vec3> cubeVertices = {
+	glm::vec3(-1, -1, 1), glm::vec3(1, -1, -1), glm::vec3(1, -1, 1),
+	glm::vec3(1, -1, -1), glm::vec3(-1, 1, -1), glm::vec3(1, 1, -1),
+	glm::vec3(-1, -1, -1), glm::vec3(-1, 1, 1), glm::vec3(-1, 1, -1),
+	glm::vec3(1, 1, 1), glm::vec3(-1, 1, -1), glm::vec3(-1, 1, 1),
+	glm::vec3(1, -1, 1), glm::vec3(1, 1, -1), glm::vec3(1, 1, 1),
+	glm::vec3(-1, -1, 1), glm::vec3(1, 1, 1), glm::vec3(-1, 1, 1),
+	glm::vec3(-1, -1, -1), glm::vec3(-1, -1, -1), glm::vec3(-1, -1, 1),
+	glm::vec3(1, 1, -1), glm::vec3(1, -1, -1), glm::vec3(1, -1, 1)};
+static std::vector<uint32_t> cubeIndices = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 0, 18, 1, 3, 19, 4, 6, 20, 7, 9, 21, 10, 12, 22, 13, 14, 23, 16};*/
+
+
 namespace eve {
 	class EveModel {
 		public:			
@@ -41,6 +54,7 @@ namespace eve {
 			EveModel &operator=(const EveModel&) = delete;
 
 			static std::unique_ptr<EveModel> createModelFromFile(EveDevice &device, const std::string &filepath);
+			static std::unique_ptr<EveModel> createCubeModel(EveDevice &device);
 
 			void bind(VkCommandBuffer commandBuffer);
 			void draw(VkCommandBuffer commandBuffer);

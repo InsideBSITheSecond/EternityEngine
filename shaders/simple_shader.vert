@@ -28,7 +28,7 @@ layout(push_constant) uniform Push {
 	mat4 normalMatrix;
 } push;
 
-const float AMBIENT = 0.02;
+const float AMBIENT = 0.05;
 
 // MATRIX MULTIPLICATION ORDER MATTERS
 void main() {

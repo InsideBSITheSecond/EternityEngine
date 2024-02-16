@@ -331,8 +331,15 @@ namespace eve
 		}
 		
 		if (ImGui::CollapsingHeader("GameObjects")) {
-			if (ImGui::Button("query terrain")){
-				eveTerrain.queryTerrain(glm::vec3(0.f));
+			static glm::ivec3 pos = glm::ivec3(1);
+			if (ImGui::SliderInt3("change location", glm::value_ptr(pos), -32, 32)) {
+				eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
+			}
+			if (ImGui::Button("change terrain")){
+				eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
+			}			
+			if (ImGui::Button("reset terrain")){
+				eveTerrain.reset();
 			}
 			for (auto& kv : gameObjects)
 			{

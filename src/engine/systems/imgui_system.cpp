@@ -95,7 +95,7 @@ namespace eve
 			&push
 		);
 
-		frameInfo.debugMenu.update(frameInfo.gameObjects, frameInfo.frameTime, frameInfo.frameIndex);
+		frameInfo.debugMenu.update(frameInfo.terrain.terrainObjects, frameInfo.frameTime, frameInfo.frameIndex);
 		frameInfo.debugMenu.draw(frameInfo.commandBuffer);
 	}
 }

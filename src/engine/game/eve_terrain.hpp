@@ -1,36 +1,96 @@
 #pragma once
 
+#include "eve_model.hpp"
+#include "eve_game_object.hpp"
+#include "../device/eve_device.hpp"
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include "glm/ext.hpp"
+
+#include <vector>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace eve {
 
-	struct EveVoxel {
-		int id;
+	static constexpr int MAX_RESOLUTION = 1;
+	static constexpr int ROOT_SIZE = 256;
+
+	class EveVoxel {
+		public:
+			unsigned int id;
+			std::string name;
+			bool value;
+
+			EveVoxel(unsigned int i, std::string n, bool v);
 	};
 
-	struct Octant {
-		EveVoxel *voxel;
-		Octant *octants[8];
+	class Octant {
+		public:
+			EveVoxel *voxel;
+			Octant *octants[8];
 
-		glm::vec3 position;
+			int width;
+			int depth;
 
-		bool isAllSame = false;
-		bool isRoot = false;
-		bool isLeaf = false;
+			glm::vec3 position;
+
+			bool isAllSame = false;
+			bool isRoot = false;
+			bool isLeaf = false;
+
+			Octant(EveVoxel *voxel, glm::vec3 position, int w);
+			
+			Octant *getChild(int index) { return octants[index]; }
+	};
+
+	class Chunk {
+		public:
+			
 	};
 
 	class EveTerrain {
 		public:
-			EveTerrain();
+			EveTerrain(EveDevice &device);
 			~EveTerrain();
 
 			EveTerrain(const EveTerrain&) = delete;
 			EveTerrain &operator=(const EveTerrain&) = delete;
 
-			void queryTerrain(glm::vec3 pos);
+			Octant queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint);
+
+			Octant* changeTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
+
+			void extendAndFillRoot(Octant *oldRoot, int oldRootIndex);
+
+			void rebuildTerrainMesh();
+
+			void init();
+			void reset();
+
+			void buildOctant(Octant *octant);
+			void createNewVoxel(std::string name, bool value);
+
+			EveDevice &eveDevice;
 
 			Octant *root;
-		private:
 
-	};
+			EveGameObject::Map terrainObjects;
+			std::vector<EveVoxel*> voxelMap;
+
+			bool needRebuild = false;
+
+			std::vector<glm::ivec3> octreeOffsets = {
+				glm::ivec3(-1, -1, -1),	// left		   top		near
+				glm::ivec3(-1, -1, 1),	// left		   top		far
+				glm::ivec3(1, -1, -1),	// right	   top		near
+				glm::ivec3(1, -1, 1),	// right	   top		far
+				glm::ivec3(-1, 1, -1),	// left		   bot		near
+				glm::ivec3(-1, 1, 1),	// left		   bot		far
+				glm::ivec3(1, 1, -1),	// right	   bot		near
+				glm::ivec3(1, 1, 1)};	// right	   bot		far
+			};
 }

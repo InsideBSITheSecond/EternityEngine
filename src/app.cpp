@@ -71,6 +71,7 @@ namespace eve
 
 		EveCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+		
 
 		auto viewerObject = EveGameObject::createGameObject();
 		EveKeyboardController keyboardController{};
@@ -89,7 +90,11 @@ namespace eve
 			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
 
 			float aspect = eveRenderer.getAspectRatio();
-			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f); 
+			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
+
+			if (eveTerrain.needRebuild)
+				eveTerrain.rebuildTerrainMesh();
+
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
 				int frameIndex = eveRenderer.getFrameIndex();
@@ -130,19 +135,14 @@ namespace eve
 
 	void App::loadGameObjects()
 	{
-		std::shared_ptr<EveModel> eveModel = EveModel::createModelFromFile(eveDevice, "models/smooth_vase.obj");
+		std::shared_ptr<EveModel> eveModel;
+		
+		/*eveModel = EveModel::createModelFromFile(eveDevice, "models/smooth_vase.obj");
 		auto smoothVase = EveGameObject::createGameObject();
 		smoothVase.model = eveModel;
 		smoothVase.transform.translation = {-.5f, .5f, 0.f};
 		smoothVase.transform.scale = {3.f, 1.5f, 3.f};
 		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
-
-		eveModel = EveModel::createModelFromFile(eveDevice, "models/human.obj");
-		auto dude = EveGameObject::createGameObject();
-		dude.model = eveModel;
-		dude.transform.translation = {-.5f, .5f, 0.f};
-		dude.transform.scale = {3.f, 1.5f, 3.f};
-		gameObjects.emplace(dude.getId(), std::move(dude));
 
 		eveModel = EveModel::createModelFromFile(eveDevice, "models/flat_vase.obj");
 		auto flatVase = EveGameObject::createGameObject();
@@ -156,7 +156,7 @@ namespace eve
 		floor.model = eveModel;
 		floor.transform.translation = {0.f, .5f, 0.f};
 		floor.transform.scale = {3.f, 1.f, 3.f};
-		gameObjects.emplace(floor.getId(), std::move(floor));
+		gameObjects.emplace(floor.getId(), std::move(floor));*/
 
 		 std::vector<glm::vec3> lightColors{
 			{1.f, .1f, .1f},
@@ -177,5 +177,7 @@ namespace eve
 			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-1.f, -1.f, -1.f, 1.f));
 			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 		}
+
+
 	}
 }

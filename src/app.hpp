@@ -36,7 +36,7 @@ namespace eve {
 			// note: order of declarations matters
 			std::unique_ptr<EveDescriptorPool> globalPool{};
 			EveGameObject::Map gameObjects;
-			EveTerrain eveTerrain{};
+			EveTerrain eveTerrain{eveDevice};
 			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 	};
 }

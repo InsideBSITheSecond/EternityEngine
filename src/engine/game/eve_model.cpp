@@ -47,6 +47,16 @@ namespace eve
 		Builder builder{};
 		builder.loadModel(filepath);
 		std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
+
+		/*int i = 0;
+		if (builder.vertices.size() == 24) {
+			for (auto k : builder.vertices) {
+				i = (i % 3) + 1;
+				std::cout << k.position[0] << " " << k.position[1] << " " << k.position[2] << std::endl;
+				if (i == 3) std::cout << std::endl;
+			}
+		}*/
+
 		return std::make_unique<EveModel>(device, builder);
 	}
 

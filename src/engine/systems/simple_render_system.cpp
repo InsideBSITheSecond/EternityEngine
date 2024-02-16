@@ -1,13 +1,16 @@
 #include "simple_render_system.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
+#include "glm/ext.hpp"
 
 #include <array>
 #include <stdexcept>
 #include <iostream>
+#include <string>
 
 namespace eve
 {
@@ -93,6 +96,25 @@ namespace eve
 				0,
 				sizeof(SimplePushConstantData),
 				&push);
+
+			obj.model->bind(frameInfo.commandBuffer);
+			obj.model->draw(frameInfo.commandBuffer);
+		}
+
+		for (auto& kv : frameInfo.terrain.terrainObjects) {
+			auto& obj = kv.second;
+			SimplePushConstantData push{};
+			push.modelMatrix = obj.transform.mat4();
+			push.normalMatrix = obj.transform.normalMatrix();
+
+			vkCmdPushConstants(
+				frameInfo.commandBuffer,
+				pipelineLayout,
+				VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+				0,
+				sizeof(SimplePushConstantData),
+				&push);
+
 			obj.model->bind(frameInfo.commandBuffer);
 			obj.model->draw(frameInfo.commandBuffer);
 		}

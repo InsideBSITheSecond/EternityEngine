@@ -5,3 +5,10 @@ raytracing:
 voxel data to gpu:
 	octrees
 	=> pass that to gpu as a buffer somehow
+
+
+
+
+
+
+MAKE IT POSSIBLE TO DISABLE PERSPECTIVE

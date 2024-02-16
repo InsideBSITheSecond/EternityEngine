@@ -23,6 +23,7 @@ namespace eve {
 			SimpleRenderSystem &operator=(const SimpleRenderSystem&) = delete;
 
 			void renderGameObjects(FrameInfo &frameInfo);
+
 		private:
 			void createPipelineLayout(VkDescriptorSetLayout globalSetLayout);
 			void createPipeline(VkRenderPass renderPass);
