@@ -13,11 +13,12 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace eve {
 
 	static constexpr int MAX_RESOLUTION = 1;
-	static constexpr int ROOT_SIZE = 256;
+	static constexpr int ROOT_SIZE = 16;
 
 	class EveVoxel {
 		public:
@@ -61,10 +62,7 @@ namespace eve {
 			EveTerrain &operator=(const EveTerrain&) = delete;
 
 			Octant queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint);
-
 			Octant* changeTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
-
-			void extendAndFillRoot(Octant *oldRoot, int oldRootIndex);
 
 			void rebuildTerrainMesh();
 
@@ -79,7 +77,12 @@ namespace eve {
 			Octant *root;
 
 			EveGameObject::Map terrainObjects;
+
 			std::vector<EveVoxel*> voxelMap;
+			std::map<glm::ivec3, Chunk*> chunkmap;
+
+			std::vector<Chunk> refinementCandidates;
+			std::vector<Chunk> refinementProcessed;
 
 			bool needRebuild = false;
 

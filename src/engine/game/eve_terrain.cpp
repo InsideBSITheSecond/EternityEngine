@@ -29,8 +29,19 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
+		int index = 0;
+
 		root = new Octant(voxelMap[1], glm::ivec3(0), ROOT_SIZE);
 		root->isRoot = true;
+
+		/*for (int x = -(root->width / 2); x < root->width / 2; x++) {
+			for (int y = -(root->width / 2); y < root->width / 2; y++) {
+				for (int z = -(root->width / 2); z < root->width / 2; z++) {
+					if (noiseSet[index++] <= .8f)
+						changeTerrain(root, glm::ivec3(x, y, z), voxelMap[0]);
+				}
+			}
+		}*/
 		//root->position = glm::vec3(-ROOT_SIZE, 0, ROOT_SIZE); //del
 	}
 
@@ -51,14 +62,13 @@ namespace eve {
 		std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
 		if (octant)
 			if (octant->isAllSame || octant->isLeaf) {
-				auto cube = EveGameObject::createGameObject();
-				cube.model = eveCube;
-				cube.transform.translation = octant->position;
-				cube.transform.scale = (glm::vec3(octant->width) - 0.05f) / 2;
-				if (octant->voxel->id == 0) {
-					cube.transform.scale = glm::vec3(.2f);
+				if (octant->voxel->id != 0) {
+					auto cube = EveGameObject::createGameObject();
+					cube.model = eveCube;
+					cube.transform.translation = octant->position;
+					cube.transform.scale = (glm::vec3(octant->width) - 0.05f) / 2;
+					terrainObjects.emplace(cube.getId(), std::move(cube));
 				}
-				terrainObjects.emplace(cube.getId(), std::move(cube));
 			} else {
 				for (int i = 0; i < 8; i++) {
 					if (octant->octants[i])
@@ -83,8 +93,8 @@ namespace eve {
 		}
 	}
 
-	void EveTerrain::extendAndFillRoot(Octant *oldRoot, int oldRootIndex) {
-		/*Octant *newroot = new Octant(new EveVoxel(), oldRoot->position, octreeOffsets, oldRoot->width * 2);
+	/*void EveTerrain::extendAndFillRoot(Octant *oldRoot, int oldRootIndex) {
+		Octant *newroot = new Octant(new EveVoxel(), oldRoot->position, octreeOffsets, oldRoot->width * 2);
 		newroot->isRoot = true;
 		newroot->width = oldRoot->width * 2;
 		//newroot->position = TODO;
@@ -97,8 +107,8 @@ namespace eve {
 			}
 		}
 
-		oldRoot->isRoot = false;*/
-	}
+		oldRoot->isRoot = false;
+	}*/
 
 	int getOctantIndexFromPos(glm::ivec3 nodePosition, glm::ivec3 queryPoint) {
 		
@@ -160,8 +170,8 @@ namespace eve {
 
 		node->isAllSame = false;
 		
-		if (node->isRoot)
-			needRebuild = true;
+		/*if (node->isRoot)
+			needRebuild = true;*/
 
 		return child;
 	}

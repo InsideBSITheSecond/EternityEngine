@@ -46,7 +46,7 @@ namespace eve
 	{
 		Builder builder{};
 		builder.loadModel(filepath);
-		std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
+		//std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
 
 		/*int i = 0;
 		if (builder.vertices.size() == 24) {
