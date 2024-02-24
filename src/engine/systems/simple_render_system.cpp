@@ -32,6 +32,14 @@ namespace eve
 		vkDestroyPipelineLayout(eveDevice.device(), pipelineLayout, nullptr);
 	}
 
+	void SimpleRenderSystem::switchRenderMode() {
+		if (requestedRenderMode != currentRenderMode) {
+			vkDeviceWaitIdle(eveDevice.device());
+			evePipeline.swap(inactivePipeline);
+			currentRenderMode = requestedRenderMode;
+		}
+	}
+
 	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 	{
 		VkPushConstantRange pushConstantRange{};
@@ -61,7 +69,15 @@ namespace eve
 		EvePipeline::defaultPipelineConfigInfo(pipelineConfig);
 		pipelineConfig.renderPass = renderPass;
 		pipelineConfig.pipelineLayout = pipelineLayout;
+		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 		evePipeline = std::make_unique<EvePipeline>(
+			eveDevice,
+			"shaders/simple_shader.vert.spv",
+			"shaders/simple_shader.frag.spv",
+			pipelineConfig);
+
+		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
+		inactivePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
 			"shaders/simple_shader.vert.spv",
 			"shaders/simple_shader.frag.spv",
@@ -70,6 +86,9 @@ namespace eve
 
 	void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo)
 	{
+		requestedRenderMode = frameInfo.debugMenu.requestedRenderMode;
+		switchRenderMode();
+
 		evePipeline->bind(frameInfo.commandBuffer);
 
 		vkCmdBindDescriptorSets(

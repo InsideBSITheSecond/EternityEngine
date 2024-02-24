@@ -281,6 +281,13 @@ namespace eve
 		ImGui::Begin("Infos");    
 		ImGui::Text("This is some useful text.");
 
+		if (ImGui::CollapsingHeader("Rendering")) {
+			static int mode = 0;
+			ImGui::RadioButton("fill", &mode, 0); ImGui::SameLine();
+			ImGui::RadioButton("line", &mode, 1);
+			if (mode == 0) requestedRenderMode = VK_POLYGON_MODE_FILL;
+			else if (mode == 1) requestedRenderMode = VK_POLYGON_MODE_LINE;
+		}
 		
 		if (ImGui::CollapsingHeader("FPS")) {
 			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
@@ -335,15 +342,17 @@ namespace eve
 			static glm::ivec3 pos = glm::ivec3(1);
 			static bool liveRebuild = true;
 
-			ImGui::Checkbox("Animate", &liveRebuild);
+			ImGui::Checkbox("live slider terrain rebuild", &liveRebuild);
 
-			if (ImGui::SliderInt3("change location", glm::value_ptr(pos), -128, 128)) {
-				eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
-				if (liveRebuild)
+			if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), -8, 8)) {
+				if (liveRebuild){
+					eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
 					eveTerrain.needRebuild = true;
+				}
 			}
-			if (ImGui::Button("change terrain")){
+			if (ImGui::Button("change terrain at slider position")){
 				eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
+				eveTerrain.needRebuild = true;
 			}			
 			if (ImGui::Button("reset terrain")){
 				eveTerrain.reset();
