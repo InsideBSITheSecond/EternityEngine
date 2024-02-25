@@ -59,8 +59,8 @@ namespace eve {
 			auto vertCode = readFile(vertexShaderPath);
 			auto fragCode = readFile(fragShaderPath);
 
-			std::cout << "Vertex: " << vertCode.size() << std::endl;
-			std::cout << "Frag: " << fragCode.size() << std::endl;
+			//std::cout << "Vertex: " << vertCode.size() << std::endl;
+			//std::cout << "Frag: " << fragCode.size() << std::endl;
 
 			createShaderModule(vertCode, &vertShaderModule);
 			createShaderModule(fragCode, &fragShaderModule);
