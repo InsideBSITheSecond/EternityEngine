@@ -66,5 +66,6 @@ target_link_libraries(${PROJECT_NAME} -lXrandr)
 target_link_libraries(${PROJECT_NAME} -lXi)
 target_link_libraries(${PROJECT_NAME} -lboost_thread)
 target_link_libraries(${PROJECT_NAME} -lboost_system)
+target_link_libraries(${PROJECT_NAME} -lboost_chrono)
 
 include_directories(${PROJECT_NAME} ${INCL_DIR})
