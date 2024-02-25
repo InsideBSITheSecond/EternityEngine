@@ -1,5 +1,6 @@
 #pragma once
 
+#include <boost/chrono.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
 #include <boost/bind.hpp>
@@ -13,6 +14,7 @@ namespace eve {
 		public:
 
 			void callback(std::string msg){
+				boost::this_thread::sleep_for(boost::chrono::milliseconds(rand() % 3000 + 1000));
 				std::cout << msg << std::endl;
 			}
 
@@ -27,7 +29,8 @@ namespace eve {
 				/*
 				* This will add 2 threads to the thread pool. (You could just put it in a for loop)
 				*/
-				std::size_t my_thread_count = 2;
+				std::size_t my_thread_count = 12;
+				std::cout << "created thread pool of size" << my_thread_count << std::endl;
 				for (std::size_t i = 0; i < my_thread_count; ++i){
 					threadpool_.create_thread(boost::bind(&boost::asio::io_service::run, io_service_));
 				}
@@ -38,9 +41,12 @@ namespace eve {
 			}
 
 			void run() {
-				io_service_->post(boost::bind(&EveThreadPool::callback,this, "Hello World!"));
-				io_service_->post(boost::bind(&EveThreadPool::callback,this, "./cache"));
-				io_service_->post(boost::bind(&EveThreadPool::callback,this, "twitter,gmail,facebook,tumblr,reddit"));
+				
+				std::size_t jobsize = 128;
+				std::cout << "adding " << std::to_string(jobsize) << " jobs to the job pool" << std::endl;
+				for (std::size_t i = 0; i < jobsize; ++i){
+					io_service_->post(boost::bind(&EveThreadPool::callback,this, "pool member " + std::to_string(i) + "'s job ended"));
+				}
 			}
 
 			void stop() {
