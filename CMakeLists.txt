@@ -64,5 +64,7 @@ target_link_libraries(${PROJECT_NAME} -lX11)
 target_link_libraries(${PROJECT_NAME} -lXxf86vm)
 target_link_libraries(${PROJECT_NAME} -lXrandr)
 target_link_libraries(${PROJECT_NAME} -lXi)
+target_link_libraries(${PROJECT_NAME} -lboost_thread)
+target_link_libraries(${PROJECT_NAME} -lboost_system)
 
 include_directories(${PROJECT_NAME} ${INCL_DIR})
