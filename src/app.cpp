@@ -92,8 +92,10 @@ namespace eve
 			float aspect = eveRenderer.getAspectRatio();
 			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
 
-			if (eveTerrain.needRebuild)
-				eveTerrain.rebuildTerrainMesh();
+			if (eveTerrain.needRebuild) {
+				eveTerrain.needRebuild = false;
+				eveTerrain.rebuildTerrainMeshThreaded();
+			}
 
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
