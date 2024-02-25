@@ -45,6 +45,13 @@ namespace eve {
 		//root->position = glm::vec3(-ROOT_SIZE, 0, ROOT_SIZE); //del
 	}
 
+	/*bool EveTerrain::isFullSolid(Octant *octant) {
+		if (octant) {
+			if (octant->isAllSame && octant->voxel->id == 0) return false;
+			if (octant->isAllSame || octant->isLeaf)
+		}
+	}*/
+
 	void EveTerrain::reset() {
 		init();
 		needRebuild = true;
@@ -56,6 +63,14 @@ namespace eve {
 		std::cout << "Rebuilding terrain mesh" << std::endl;
 		terrainObjects.clear();
 		buildOctant(root);
+	}
+
+	void my_func() {
+		
+	}
+
+	void EveTerrain::rebuildTerrainMeshThreaded() {
+		pool.run();
 	}
 
 	void EveTerrain::buildOctant(Octant *octant) {

@@ -8,17 +8,19 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
 
-#include <vector>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include <map>
 
+#include "../utils/eve_threads.hpp"
+
 namespace eve {
 
 	static constexpr int MAX_RESOLUTION = 1;
 	static constexpr int ROOT_SIZE = 16;
+	static constexpr int MAX_THREADS = 16;
 
 	class EveVoxel {
 		public:
@@ -35,7 +37,7 @@ namespace eve {
 			Octant *octants[8];
 
 			int width;
-			int depth;
+			//int depth;
 
 			glm::vec3 position;
 
@@ -50,7 +52,9 @@ namespace eve {
 
 	class Chunk {
 		public:
-			
+			Octant *root;
+
+		private:
 	};
 
 	class EveTerrain {
@@ -65,6 +69,7 @@ namespace eve {
 			Octant* changeTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
 
 			void rebuildTerrainMesh();
+			void rebuildTerrainMeshThreaded();
 
 			void init();
 			void reset();
@@ -81,8 +86,11 @@ namespace eve {
 			std::vector<EveVoxel*> voxelMap;
 			std::map<glm::ivec3, Chunk*> chunkmap;
 
-			std::vector<Chunk> refinementCandidates;
-			std::vector<Chunk> refinementProcessed;
+			//std::vector<Chunk> refinementCandidates;
+			//std::vector<Chunk> refinementProcessed;
+
+			std::vector<Chunk> remeshingCandidates;
+			std::vector<Chunk> remeshingProcessed;
 
 			bool needRebuild = false;
 
@@ -94,6 +102,10 @@ namespace eve {
 				glm::ivec3(-1, 1, -1),	// left		   bot		near
 				glm::ivec3(-1, 1, 1),	// left		   bot		far
 				glm::ivec3(1, 1, -1),	// right	   bot		near
-				glm::ivec3(1, 1, 1)};	// right	   bot		far
+				glm::ivec3(1, 1, 1)		// right	   bot		far
 			};
+
+		private:
+			EveThreadPool pool{};
+	};
 }

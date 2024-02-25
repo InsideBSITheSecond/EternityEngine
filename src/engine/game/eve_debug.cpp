@@ -360,6 +360,7 @@ namespace eve
 			if (ImGui::Button("rebuild terrain mesh")){
 				eveTerrain.needRebuild = true;
 			}
+			
 			for (auto& kv : gameObjects)
 			{
 				auto& obj = kv.second;
