@@ -47,7 +47,7 @@ namespace eve {
 
 			bool isOpen() const { return open; }
 
-			void update(EveGameObject::Map &gameObjects, float frametime, int frameIndex);
+			void update(std::vector<Chunk*> chunkMap, float frametime, int frameIndex);
 			void draw(VkCommandBuffer commandBuffer);
 
 			void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -62,7 +62,7 @@ namespace eve {
 
 			void drawDemo();
 			void drawPlotDemo();
-			void drawInfo(EveGameObject::Map &gameObjects, float frametime, int frameIndex);
+			void drawInfo(std::vector<Chunk*> chunkMap, float frametime, int frameIndex);
 			void drawControls();
 
 			EveWindow &eveWindow;

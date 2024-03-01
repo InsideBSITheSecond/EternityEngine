@@ -2,6 +2,7 @@
 
 #include "eve_model.hpp"
 #include "eve_game_object.hpp"
+#include "eve_chunk.hpp"
 #include "../device/eve_device.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -17,82 +18,46 @@
 #include "../utils/eve_threads.hpp"
 
 namespace eve {
-
-	static constexpr int MAX_RESOLUTION = 1;
-	static constexpr int ROOT_SIZE = 16;
-	static constexpr int MAX_THREADS = 16;
-
-	class EveVoxel {
-		public:
-			unsigned int id;
-			std::string name;
-			bool value;
-
-			EveVoxel(unsigned int i, std::string n, bool v);
-	};
-
-	class Octant {
-		public:
-			EveVoxel *voxel;
-			Octant *octants[8];
-
-			int width;
-			//int depth;
-
-			glm::vec3 position;
-
-			bool isAllSame = false;
-			bool isRoot = false;
-			bool isLeaf = false;
-
-			Octant(EveVoxel *voxel, glm::vec3 position, int w);
-			
-			Octant *getChild(int index) { return octants[index]; }
-	};
-
-	class Chunk {
-		public:
-			Octant *root;
-
-		private:
-	};
-
 	class EveTerrain {
 		public:
 			EveTerrain(EveDevice &device);
 			~EveTerrain();
 
+			void tick();
+
 			EveTerrain(const EveTerrain&) = delete;
 			EveTerrain &operator=(const EveTerrain&) = delete;
 
 			Octant queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint);
-			Octant* changeTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
 
-			void rebuildTerrainMesh();
-			void rebuildTerrainMeshThreaded();
+			void changeTerrain(glm::ivec3 pos, EveVoxel *voxel);
+			Octant* changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
+
+			void rebuildTerrainMeshesLine();
+			void rebuildTerrainMeshesFill();
 
 			void init();
 			void reset();
 
-			void buildOctant(Octant *octant);
+			void cookOctantMeshTransparentMode(Octant *octant);
 			void createNewVoxel(std::string name, bool value);
 
 			EveDevice &eveDevice;
 
-			Octant *root;
-
-			EveGameObject::Map terrainObjects;
-
 			std::vector<EveVoxel*> voxelMap;
-			std::map<glm::ivec3, Chunk*> chunkmap;
+
+			std::vector<Chunk*> chunkMap;
+
+			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
 
 			//std::vector<Chunk> refinementCandidates;
 			//std::vector<Chunk> refinementProcessed;
 
-			std::vector<Chunk> remeshingCandidates;
-			std::vector<Chunk> remeshingProcessed;
+			std::vector<Chunk*> remeshingCandidates;
+			std::vector<Chunk*> remeshingProcessing;
+			std::vector<Chunk*> remeshingProcessed;
 
-			bool needRebuild = false;
+			//bool needRebuild = false;
 
 			std::vector<glm::ivec3> octreeOffsets = {
 				glm::ivec3(-1, -1, -1),	// left		   top		near
@@ -106,6 +71,6 @@ namespace eve {
 			};
 
 		private:
-			EveThreadPool pool{};
+			EveThreadPool pool{12};
 	};
 }

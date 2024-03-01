@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../game/eve_terrain.hpp"
+
 #include <boost/chrono.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
@@ -12,13 +14,14 @@
 namespace eve {
 	class EveThreadPool {
 		public:
+			std::size_t MAX_THREADS = 12;
 
-			void callback(std::string msg){
+			void faketask(std::string msg){
 				boost::this_thread::sleep_for(boost::chrono::milliseconds(rand() % 3000 + 1000));
 				std::cout << msg << std::endl;
 			}
 
-			EveThreadPool() {
+			EveThreadPool(std::size_t threadCount) : MAX_THREADS{threadCount} {
 				/*
 				* This will start the io_service_ processing loop. All tasks
 				* assigned with io_service_->post() will start executing.
@@ -26,30 +29,28 @@ namespace eve {
 				io_service_ = boost::make_shared<boost::asio::io_service>();
 				work_ = boost::make_shared<boost::asio::io_service::work>(*io_service_);
 
-				/*
-				* This will add 2 threads to the thread pool. (You could just put it in a for loop)
-				*/
-				std::size_t my_thread_count = 12;
-				std::cout << "created thread pool of size" << my_thread_count << std::endl;
-				for (std::size_t i = 0; i < my_thread_count; ++i){
+				std::cout << "created thread pool of size" << MAX_THREADS << std::endl;
+				for (std::size_t i = 0; i < MAX_THREADS; ++i){
 					threadpool_.create_thread(boost::bind(&boost::asio::io_service::run, io_service_));
 				}
 			}
 
 			~EveThreadPool() {
-				stop();
+				destroy();
 			}
 
-			void run() {
-				
-				std::size_t jobsize = 128;
+			void pushChunkToRemeshingQueue(Chunk *chunk) {
+				io_service_->post(boost::bind(&Chunk::remesh, chunk, chunk->root));
+			}
+
+			void runFakeTasks(std::size_t jobsize) {
 				std::cout << "adding " << std::to_string(jobsize) << " jobs to the job pool" << std::endl;
 				for (std::size_t i = 0; i < jobsize; ++i){
-					io_service_->post(boost::bind(&EveThreadPool::callback,this, "pool member " + std::to_string(i) + "'s job ended"));
+					io_service_->post(boost::bind(&EveThreadPool::faketask, this, "fake task " + std::to_string(i) + " ended"));
 				}
 			}
 
-			void stop() {
+			void destroy() {
 				io_service_->stop();
 				threadpool_.join_all();
 			}

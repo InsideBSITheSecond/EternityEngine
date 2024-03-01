@@ -244,7 +244,7 @@ namespace eve
 		//ImGui_ImplVulkan_CreateFontsTexture();
 	}
 
-	void EveDebug::update(EveGameObject::Map &gameObjects, float frametime, int frameIndex) {
+	void EveDebug::update(std::vector<Chunk*> chunkMap, float frametime, int frameIndex) {
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -252,7 +252,7 @@ namespace eve
 		if (open) {
 			EveDebug::drawControls();
 			if (showDemo) EveDebug::drawDemo();
-			if (showInfo) EveDebug::drawInfo(gameObjects, frametime, frameIndex);
+			if (showInfo) EveDebug::drawInfo(chunkMap, frametime, frameIndex);
 			if (showPlotDemo) EveDebug::drawPlotDemo();
 		}
 
@@ -275,7 +275,7 @@ namespace eve
 		ImGui::End();
 	}
 
-	void EveDebug::drawInfo(EveGameObject::Map &gameObjects, float frametime, int frameIndex) {
+	void EveDebug::drawInfo(std::vector<Chunk*> chunkMap, float frametime, int frameIndex) {
     	ImGuiIO& io = ImGui::GetIO(); (void)io;
 		
 		ImGui::Begin("Infos");    
@@ -339,29 +339,32 @@ namespace eve
 		
 		if (ImGui::CollapsingHeader("GameObjects")) {
 
-			static glm::ivec3 pos = glm::ivec3(1);
+			static glm::ivec3 pos = glm::ivec3(0);
 			static bool liveRebuild = true;
 
 			ImGui::Checkbox("live slider terrain rebuild", &liveRebuild);
 
-			if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), -8, 8)) {
+			static glm::ivec2 range = glm::ivec2(0, 64);
+			ImGui::InputInt("min", &range.x);
+			ImGui::InputInt("max", &range.y);
+			if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), range.x, range.y)) {
 				if (liveRebuild){
-					eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
-					eveTerrain.needRebuild = true;
+					eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
+					//eveTerrain.needRebuild = true;
 				}
 			}
 			if (ImGui::Button("change terrain at slider position")){
-				eveTerrain.changeTerrain(eveTerrain.root, pos, eveTerrain.voxelMap[0]);
-				eveTerrain.needRebuild = true;
+				eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
+				//eveTerrain.needRebuild = true;
 			}			
 			if (ImGui::Button("reset terrain")){
 				eveTerrain.reset();
 			}
 			if (ImGui::Button("rebuild terrain mesh")){
-				eveTerrain.needRebuild = true;
+				//eveTerrain.needRebuild = true;
 			}
 			
-			for (auto& kv : gameObjects)
+			/*for (auto& kv : chunkMap)
 			{
 				auto& obj = kv.second;
 				ImGui::PushID(kv.first);
@@ -371,7 +374,7 @@ namespace eve
 				ImGui::SliderFloat3("scale", glm::value_ptr(obj.transform.scale), 0.f, 10.f);
 				ImGui::SliderFloat3("rotation", glm::value_ptr(obj.transform.rotation), -3.14f, 3.14f);
 				ImGui::PopID();
-			}
+			}*/
 		}
 
 		ImGui::End();
