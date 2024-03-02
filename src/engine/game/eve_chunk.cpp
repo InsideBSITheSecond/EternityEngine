@@ -35,6 +35,8 @@ namespace eve {
 					cube.model = eveTerrain->eveCube;
 					cube.transform.translation = octant->position;
 					cube.transform.scale = (glm::vec3(octant->width) - 0.05f) / 2;
+
+					boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
 					chunkObjectMap.emplace(cube.getId(), std::move(cube));
 				}
 			} else {
@@ -45,6 +47,9 @@ namespace eve {
 			}
 
 			if (octant->container->root == octant) {
+				boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
+				
+				vkDeviceWaitIdle(eveTerrain->eveDevice.device());
 				EveTerrain *eveTerrain = octant->container->eveTerrain;
 				eveTerrain->remeshingProcessing.erase(std::find(eveTerrain->remeshingProcessing.begin(), eveTerrain->remeshingProcessing.end(), this));
 				eveTerrain->remeshingProcessed.push_back(this);

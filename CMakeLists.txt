@@ -3,6 +3,7 @@ set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
 find_package(Vulkan REQUIRED)
+find_package(easy_profiler REQUIRED)
 
 message("CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
 
@@ -51,10 +52,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Compile flags - you can customize these
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
 # Specify additional include directories if needed
-#target_include_directories(EternityVoxelEngine PRIVATE src/includes)
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/easy_profiler/include)
 
 # Specify additional libraries if needed
 target_link_libraries(${PROJECT_NAME} -lglfw)
@@ -67,5 +68,6 @@ target_link_libraries(${PROJECT_NAME} -lXi)
 target_link_libraries(${PROJECT_NAME} -lboost_thread)
 target_link_libraries(${PROJECT_NAME} -lboost_system)
 target_link_libraries(${PROJECT_NAME} -lboost_chrono)
+target_link_libraries(${PROJECT_NAME} easy_profiler)
 
 include_directories(${PROJECT_NAME} ${INCL_DIR})

@@ -6,47 +6,49 @@ namespace eve {
 		voxelMap.push_back(new EveVoxel(0, "air", false));
 		voxelMap.push_back(new EveVoxel(1, "stone", true));
 		init();
-		rebuildTerrainMeshesFill();
 	}
 
 	void EveTerrain::init() {
 		for (int x = -1; x <= 1; x++) {
-			for (int y = -1; y <= 1; y++) {
+			for (int y = 0; y <= 0; y++) {
 				for (int z = -1; z <= 1; z++) {
+					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
-					chunkMap.push_back(
-						new Chunk(
-							new Octant(voxelMap[1], chunkPos, CHUNK_SIZE, nullptr),
-						chunkPos, this));
-					chunkMap.back()->root->container = chunkMap.back();
-					remeshingCandidates.push_back(chunkMap.back());
+					Octant *octant = new Octant(voxelMap[1], chunkPos, CHUNK_SIZE, nullptr);
+					Chunk *chunk = new Chunk(octant, chunkPos, this);
+					octant->container = chunk;
+
+					chunk->id = chunkCount;
+					chunk->isQueued = true;
+					remeshingCandidates.push_back(chunk);
 				}
 			}
 		}
-		
-		/*for (int x = -(root->width / 2); x < root->width / 2; x++) {
-			for (int y = -(root->width / 2); y < root->width / 2; y++) {
-				for (int z = -(root->width / 2); z < root->width / 2; z++) {
-					if (noiseSet[index++] <= .8f)
-						changeTerrain(root, glm::ivec3(x, y, z), voxelMap[0]);
-				}
-			}
-		}*/
+
 		//root->position = glm::vec3(-ROOT_SIZE, 0, ROOT_SIZE); //del
 	}
 
-	void EveTerrain::tick() {
-		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end(); it++) {
-			remeshingProcessing.push_back(*it);
-			pool.pushChunkToRemeshingQueue(*it);
+	void EveTerrain::pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk) {
+		auto find = std::find(list->begin(), list->end(), chunk);
+		if (find != list->end()) {
+			list->erase(find);
 		}
-		remeshingCandidates.clear();
+		list->push_back(chunk);
+	}
 
-		/*for (Chunk *chunk : remeshingProcessed) {
-			remeshingProcessing.push_back(chunk);
-			pool.pushChunkToRemeshingQueue(chunk);
-			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), chunk));
-		}*/
+	void EveTerrain::tick() {
+		EASY_FUNCTION(profiler::colors::Magenta);
+
+		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
+			pushIfUnique(&remeshingProcessing, *it);
+			pool.pushChunkToRemeshingQueue(*it);
+			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
+		}
+
+		for (Chunk *chunk : remeshingProcessed) {
+			chunk->isQueued = false;
+			chunkMap.emplace(chunk->id, chunk);
+		}
 	}
 
 	/*bool EveTerrain::isFullSolid(Octant *octant) {
@@ -58,19 +60,6 @@ namespace eve {
 
 	void EveTerrain::reset() {
 		init();
-		//needRebuild = true;
-	}
-
-	void EveTerrain::rebuildTerrainMeshesLine() {
-		//needRebuild = false;
-		vkDeviceWaitIdle(eveDevice.device());
-		std::cout << "Rebuilding terrain mesh" << std::endl;
-		//terrainObjects.clear();
-		//cookOctantMeshTransparentMode(chunkMap.front()->root);
-	}
-
-	void EveTerrain::rebuildTerrainMeshesFill() {
-		//pool.runFakeTasks(64);
 	}
 
 	EveTerrain::~EveTerrain() {
@@ -87,23 +76,6 @@ namespace eve {
 			}
 		}
 	}
-
-	/*void EveTerrain::extendAndFillRoot(Octant *oldRoot, int oldRootIndex) {
-		Octant *newroot = new Octant(new EveVoxel(), oldRoot->position, octreeOffsets, oldRoot->width * 2);
-		newroot->isRoot = true;
-		newroot->width = oldRoot->width * 2;
-		//newroot->position = TODO;
-		
-		for (int i = 0; i < 8; i++) {
-			if (i == oldRootIndex) {
-				newroot->octants[oldRootIndex] = oldRoot;
-			} else {
-				//newroot->octants[i] = new Octant(new EveVoxel(), );
-			}
-		}
-
-		oldRoot->isRoot = false;
-	}*/
 
 	int getOctantIndexFromPos(glm::ivec3 nodePosition, glm::ivec3 queryPoint) {
 		
@@ -186,6 +158,7 @@ namespace eve {
 	}
 
 	void EveTerrain::changeTerrain(glm::ivec3 pos, EveVoxel *voxel) {
+		EASY_FUNCTION(profiler::colors::Magenta);
 		//glm::ivec3 lookingFor = glm::vec3(
 		//	CHUNK_SIZE * ((pos.x - 1) / (CHUNK_SIZE / 2)), 
 		//	CHUNK_SIZE * ((pos.y - 1) / (CHUNK_SIZE / 2)),
@@ -193,7 +166,8 @@ namespace eve {
 
 		//std::cout << std::endl << "looking for " << glm::to_string(lookingFor) << std::endl;
 		//std::cout << "pos request " << glm::to_string(pos) << std::endl;
-		for (Chunk *chunk : chunkMap) {
+		for (auto &kv : chunkMap) {
+			Chunk *chunk = kv.second;
 			glm::vec3 topLeftFront = glm::ivec3(
 				chunk->root->position.x + trunc(chunk->root->width / 2),
 				chunk->root->position.y - trunc(chunk->root->width / 2),
@@ -220,11 +194,12 @@ namespace eve {
 			new Chunk(
 				new Octant(voxelMap[1], lookingFor, CHUNK_SIZE, nullptr),
 			lookingFor, this));*/
-		chunkMap.back()->root->container = chunkMap.back();
-		remeshingCandidates.push_back(chunkMap.back());
+		//chunkMap.back()->root->container = chunkMap.back();
+		//remeshingCandidates.push_back(chunkMap.back());
 	}
 
 	Octant* EveTerrain::changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel) {
+		EASY_FUNCTION(profiler::colors::Magenta);
 		int childIndex = getOctantIndexFromPos2(node, queryPoint);
 		Octant *child = node->getChild(childIndex);
 
@@ -265,10 +240,12 @@ namespace eve {
 		
 		// if we are the root node
 		if (node->container->root == node) {
-			remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), node->container));
 			vkDeviceWaitIdle(eveDevice.device());
+			boost::lock_guard<boost::mutex> lock(mutex);
+			//remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), node->container));
 			node->container->chunkObjectMap.clear();
-			remeshingCandidates.push_back(node->container);
+
+			pushIfUnique(&remeshingCandidates, node->container);
 		}
 
 		return child;

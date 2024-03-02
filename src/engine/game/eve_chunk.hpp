@@ -6,6 +6,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
 
+#include <boost/thread/thread.hpp>
+
 namespace eve {
 	static constexpr int MAX_RESOLUTION = 1;
 	static constexpr int CHUNK_SIZE = 16;
@@ -46,7 +48,12 @@ namespace eve {
 	class Chunk {
 		public:
 			Octant *root;
-			bool needRebuild = false; // this should go away from constructor
+
+			unsigned int id;
+
+			bool isQueued = false;
+			boost::mutex mutex;
+
 			glm::ivec3 position;
 			EveGameObject::Map chunkObjectMap;
 

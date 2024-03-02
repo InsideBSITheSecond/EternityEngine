@@ -15,12 +15,13 @@
 // std
 #include <memory>
 #include <vector>
+#include <easy/profiler.h>
 
 namespace eve {
 	class SimpleRenderSystem {
 		public:
 
-			SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+			SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain);
 			~SimpleRenderSystem();
 
 			void switchRenderMode();
@@ -38,6 +39,7 @@ namespace eve {
 			VkPolygonMode requestedRenderMode; // initialized from eve_debug.hpp
 
 			EveDevice &eveDevice;
+			EveTerrain &eveTerrain;
 			std::unique_ptr<EvePipeline> evePipeline;
 			std::unique_ptr<EvePipeline> inactivePipeline;
 			VkPipelineLayout pipelineLayout;

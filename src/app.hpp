@@ -10,6 +10,7 @@
 // std
 #include <memory>
 #include <vector>
+#include <easy/profiler.h>
 #include "engine/game/eve_terrain.hpp"
 
 namespace eve {

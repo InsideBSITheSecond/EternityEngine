@@ -244,7 +244,7 @@ namespace eve
 		//ImGui_ImplVulkan_CreateFontsTexture();
 	}
 
-	void EveDebug::update(std::vector<Chunk*> chunkMap, float frametime, int frameIndex) {
+	void EveDebug::update(float frametime, int frameIndex) {
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -252,7 +252,7 @@ namespace eve
 		if (open) {
 			EveDebug::drawControls();
 			if (showDemo) EveDebug::drawDemo();
-			if (showInfo) EveDebug::drawInfo(chunkMap, frametime, frameIndex);
+			if (showInfo) EveDebug::drawInfo(frametime, frameIndex);
 			if (showPlotDemo) EveDebug::drawPlotDemo();
 		}
 
@@ -275,11 +275,13 @@ namespace eve
 		ImGui::End();
 	}
 
-	void EveDebug::drawInfo(std::vector<Chunk*> chunkMap, float frametime, int frameIndex) {
+	void EveDebug::drawInfo(float frametime, int frameIndex) {
     	ImGuiIO& io = ImGui::GetIO(); (void)io;
 		
 		ImGui::Begin("Infos");    
-		ImGui::Text("This is some useful text.");
+		ImGui::Text("Remeshing candidates: %zu", eveTerrain.remeshingCandidates.size());
+		ImGui::Text("Remeshing processing: %zu", eveTerrain.remeshingProcessing.size());
+		ImGui::Text("Remeshing processed: %zu", eveTerrain.remeshingProcessed.size());
 
 		if (ImGui::CollapsingHeader("Rendering")) {
 			static int mode = 0;
@@ -360,8 +362,15 @@ namespace eve
 			if (ImGui::Button("reset terrain")){
 				eveTerrain.reset();
 			}
-			if (ImGui::Button("rebuild terrain mesh")){
-				//eveTerrain.needRebuild = true;
+			if (ImGui::Button("apply perlin")){
+				for (int x = -24; x < 24; ++x) {
+					for (int z = -24; z < 24; ++z) {
+						const double noise = eveTerrain.perlin.octave2D_01((x * 0.01), (z * 0.01), 4);
+						for (int h = std::lerp(20, -20, noise); h <= 24; h++) {
+							eveTerrain.changeTerrain(glm::ivec3(x, h, -z), eveTerrain.voxelMap[0]);
+						}
+					}
+				}
 			}
 			
 			/*for (auto& kv : chunkMap)

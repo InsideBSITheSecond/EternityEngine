@@ -16,6 +16,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <chrono>
+#include <easy/profiler.h>
 
 #include "libs/imgui/imgui_impl_vulkan.h"
 
@@ -24,6 +25,8 @@ namespace eve
 
 	App::App()
 	{
+		EASY_FUNCTION(profiler::colors::Green200);
+		EASY_BLOCK("App()");
 		globalPool = EveDescriptorPool::Builder(eveDevice)
 			.setMaxSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT * 2)
 			.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, EveSwapChain::MAX_FRAMES_IN_FLIGHT)
@@ -63,7 +66,7 @@ namespace eve
 				.build(globalDescriptorSets[i]);
 		}
 
-		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
+		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout(), eveTerrain};
 		PointLightSystem pointLightSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		ImGuiSystem imGuiSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
@@ -80,6 +83,7 @@ namespace eve
 
 		while (!eveWindow.shouldClose())
 		{
+			EASY_BLOCK("App Loop");
 			glfwPollEvents();
 
 			auto newTime = std::chrono::high_resolution_clock::now();
@@ -101,6 +105,8 @@ namespace eve
 
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
+				EASY_BLOCK("Command Buffer");
+
 				int frameIndex = eveRenderer.getFrameIndex();
 				FrameInfo frameInfo{
 					frameIndex,
@@ -122,6 +128,7 @@ namespace eve
 				uboBuffers[frameIndex]->flush();
 
 				// render
+				//boost::lock_guard<boost::mutex> lock(eveTerrain.mutex);
 				eveRenderer.beginSwapChainRenderPass(commandBuffer);
 
 				// order here matters
@@ -131,7 +138,10 @@ namespace eve
 				
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
+				//boost::lock_guard<boost::mutex> unlock(eveTerrain.mutex);
+				EASY_END_BLOCK;
 			}
+			EASY_END_BLOCK;
 		}
 
 		vkDeviceWaitIdle(eveDevice.device());

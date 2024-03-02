@@ -14,7 +14,7 @@
 namespace eve {
 	class EveThreadPool {
 		public:
-			std::size_t MAX_THREADS = 12;
+			std::size_t MAX_THREADS = 1;
 
 			void faketask(std::string msg){
 				boost::this_thread::sleep_for(boost::chrono::milliseconds(rand() % 3000 + 1000));

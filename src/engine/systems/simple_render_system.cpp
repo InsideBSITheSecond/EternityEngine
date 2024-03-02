@@ -21,7 +21,8 @@ namespace eve
 		glm::mat4 normalMatrix{1.f};
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout) : eveDevice{device}
+	SimpleRenderSystem::SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain) 
+	: eveDevice{device}, eveTerrain{terrain}
 	{
 		createPipelineLayout(globalSetLayout);
 		createPipeline(renderPass);
@@ -120,7 +121,8 @@ namespace eve
 			obj.model->draw(frameInfo.commandBuffer);
 		}
 		
-		for (Chunk *chunk : frameInfo.terrain.remeshingProcessed) {
+		for (auto &kv : frameInfo.terrain.chunkMap) {
+			Chunk *chunk = kv.second;
 			for (auto& kv : chunk->chunkObjectMap) {
 				auto& obj = kv.second;
 				SimplePushConstantData push{};

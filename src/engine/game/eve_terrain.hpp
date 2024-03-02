@@ -5,6 +5,8 @@
 #include "eve_chunk.hpp"
 #include "../device/eve_device.hpp"
 
+#include "../../libs/PerlinNoise/PerlinNoise.hpp"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
@@ -14,6 +16,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <easy/profiler.h>
 
 #include "../utils/eve_threads.hpp"
 
@@ -33,6 +36,8 @@ namespace eve {
 			void changeTerrain(glm::ivec3 pos, EveVoxel *voxel);
 			Octant* changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
 
+			void pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk);
+
 			void rebuildTerrainMeshesLine();
 			void rebuildTerrainMeshesFill();
 
@@ -46,13 +51,15 @@ namespace eve {
 
 			std::vector<EveVoxel*> voxelMap;
 
-			std::vector<Chunk*> chunkMap;
+			unsigned int chunkCount;
+			std::map<unsigned int, Chunk*> chunkMap;
 
 			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
 
 			//std::vector<Chunk> refinementCandidates;
 			//std::vector<Chunk> refinementProcessed;
 
+			boost::mutex mutex;
 			std::vector<Chunk*> remeshingCandidates;
 			std::vector<Chunk*> remeshingProcessing;
 			std::vector<Chunk*> remeshingProcessed;
@@ -70,7 +77,10 @@ namespace eve {
 				glm::ivec3(1, 1, 1)		// right	   bot		far
 			};
 
+			siv::PerlinNoise::seed_type seed = 123456u;
+			siv::PerlinNoise perlin{seed};
 		private:
 			EveThreadPool pool{12};
+
 	};
 }

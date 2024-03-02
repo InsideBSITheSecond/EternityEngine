@@ -11,6 +11,8 @@
 
 #include <vector>
 #include <memory>
+#include <cmath>
+#include <easy/profiler.h>
 
 #include "../../libs/imgui/imgui_impl_vulkan.h"
 #include "../../libs/imgui/imgui_impl_glfw.h"
@@ -47,7 +49,7 @@ namespace eve {
 
 			bool isOpen() const { return open; }
 
-			void update(std::vector<Chunk*> chunkMap, float frametime, int frameIndex);
+			void update(float frametime, int frameIndex);
 			void draw(VkCommandBuffer commandBuffer);
 
 			void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -62,7 +64,7 @@ namespace eve {
 
 			void drawDemo();
 			void drawPlotDemo();
-			void drawInfo(std::vector<Chunk*> chunkMap, float frametime, int frameIndex);
+			void drawInfo(float frametime, int frameIndex);
 			void drawControls();
 
 			EveWindow &eveWindow;

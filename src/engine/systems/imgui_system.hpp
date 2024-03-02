@@ -11,6 +11,7 @@
 // std
 #include <memory>
 #include <vector>
+#include <easy/profiler.h>
 #include "../rendering/eve_descriptors.hpp"
 
 namespace eve {
