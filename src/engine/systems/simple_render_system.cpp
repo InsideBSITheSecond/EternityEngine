@@ -123,22 +123,24 @@ namespace eve
 		
 		for (auto &kv : frameInfo.terrain.chunkMap) {
 			Chunk *chunk = kv.second;
-			for (auto& kv : chunk->chunkObjectMap) {
-				auto& obj = kv.second;
-				SimplePushConstantData push{};
-				push.modelMatrix = obj.transform.mat4();
-				push.normalMatrix = obj.transform.normalMatrix();
+			if (!chunk->isQueued) {
+				for (auto& kv : chunk->chunkObjectMap) {
+					auto& obj = kv.second;
+					SimplePushConstantData push{};
+					push.modelMatrix = obj.transform.mat4();
+					push.normalMatrix = obj.transform.normalMatrix();
 
-				vkCmdPushConstants(
-					frameInfo.commandBuffer,
-					pipelineLayout,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-					0,
-					sizeof(SimplePushConstantData),
-					&push);
+					vkCmdPushConstants(
+						frameInfo.commandBuffer,
+						pipelineLayout,
+						VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+						0,
+						sizeof(SimplePushConstantData),
+						&push);
 
-				obj.model->bind(frameInfo.commandBuffer);
-				obj.model->draw(frameInfo.commandBuffer);
+					obj.model->bind(frameInfo.commandBuffer);
+					obj.model->draw(frameInfo.commandBuffer);
+				}
 			}
 		}
 	}

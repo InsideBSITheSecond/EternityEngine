@@ -367,7 +367,7 @@ namespace eve
 					for (int z = -24; z < 24; ++z) {
 						const double noise = eveTerrain.perlin.octave2D_01((x * 0.01), (z * 0.01), 4);
 						for (int h = std::lerp(20, -20, noise); h <= 24; h++) {
-							eveTerrain.changeTerrain(glm::ivec3(x, h, -z), eveTerrain.voxelMap[0]);
+							eveTerrain.changeTerrain(glm::ivec3(x, -h, z), eveTerrain.voxelMap[0]);
 						}
 					}
 				}

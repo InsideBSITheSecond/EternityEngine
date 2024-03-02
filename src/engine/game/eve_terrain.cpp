@@ -10,7 +10,7 @@ namespace eve {
 
 	void EveTerrain::init() {
 		for (int x = -1; x <= 1; x++) {
-			for (int y = 0; y <= 0; y++) {
+			for (int y = -1; y <= 1; y++) {
 				for (int z = -1; z <= 1; z++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
@@ -39,15 +39,15 @@ namespace eve {
 	void EveTerrain::tick() {
 		EASY_FUNCTION(profiler::colors::Magenta);
 
+		for (Chunk *chunk : remeshingProcessed) {
+			chunk->isQueued = false;
+			chunkMap.emplace(chunk->id, chunk);
+		}
+
 		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
 			pushIfUnique(&remeshingProcessing, *it);
 			pool.pushChunkToRemeshingQueue(*it);
 			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
-		}
-
-		for (Chunk *chunk : remeshingProcessed) {
-			chunk->isQueued = false;
-			chunkMap.emplace(chunk->id, chunk);
 		}
 	}
 
@@ -185,9 +185,15 @@ namespace eve {
 					if (pos.z <= topLeftFront.z && pos.z >= botRightBack.z) {
 						changeOctantTerrain(chunk->root, pos, voxel);
 						return;
-					}
-				}
-			}
+					} else { 
+						std::cout << "y problem" << std::endl;
+					 }
+				} else { 
+					std::cout << "x problem" << std::endl;
+				 }
+			} else { 
+				std::cout << "z problem" << std::endl;
+			 }
 		}
 
 		/*chunkMap.push_back(
