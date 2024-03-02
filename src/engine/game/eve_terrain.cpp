@@ -180,28 +180,17 @@ namespace eve {
 
 			glm::ivec3 center = glm::ivec3((topLeftFront + botRightBack) / 2);
 
-			if (pos.y >= topLeftFront.y && pos.y <= botRightBack.y) {
-				if (pos.x <= topLeftFront.x && pos.x >= botRightBack.x) {
-					if (pos.z <= topLeftFront.z && pos.z >= botRightBack.z) {
+			if (pos.y >= topLeftFront.y && pos.y <= botRightBack.y - 1) {
+				if (pos.x <= topLeftFront.x - 1 && pos.x >= botRightBack.x) {
+					if (pos.z <= topLeftFront.z - 1 && pos.z >= botRightBack.z) {
 						changeOctantTerrain(chunk->root, pos, voxel);
 						return;
-					} else { 
-						std::cout << "y problem" << std::endl;
-					 }
-				} else { 
-					std::cout << "x problem" << std::endl;
-				 }
-			} else { 
-				std::cout << "z problem" << std::endl;
-			 }
+					}
+				}
+			}
 		}
 
-		/*chunkMap.push_back(
-			new Chunk(
-				new Octant(voxelMap[1], lookingFor, CHUNK_SIZE, nullptr),
-			lookingFor, this));*/
-		//chunkMap.back()->root->container = chunkMap.back();
-		//remeshingCandidates.push_back(chunkMap.back());
+		std::cout << "Chunk not found" << std::endl;
 	}
 
 	Octant* EveTerrain::changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel) {
@@ -228,6 +217,7 @@ namespace eve {
 		if (node->isLeaf) {
 			//std::cout << std::endl;
 			//std::cout << "set voxel at " << glm::to_string(queryPoint) << std::endl;
+			//std::cout << queryPoint.x << " ";
 			node->voxel = voxel;
 			return node;
 		}
