@@ -2,6 +2,7 @@
 
 #include "../game/eve_terrain.hpp"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/chrono.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/io_service.hpp>
@@ -9,6 +10,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/thread/thread_pool.hpp>
 #include <boost/make_shared.hpp>
+
 #include <iostream>
 
 namespace eve {
@@ -41,6 +43,10 @@ namespace eve {
 
 			void pushChunkToRemeshingQueue(Chunk *chunk) {
 				io_service_->post(boost::bind(&Chunk::remesh, chunk, chunk->root));
+			}
+
+			void pushChunkToNoisingQueue(Chunk *chunk) {
+				//io_service_->post(boost::bind(&Chunk::noise, chunk, chunk->root));
 			}
 
 			void runFakeTasks(std::size_t jobsize) {

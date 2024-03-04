@@ -39,9 +39,10 @@ namespace eve {
 
 			Chunk *container;
 
-			Octant(EveVoxel *voxel, glm::vec3 position, int w, Chunk *containerChunk);
+			Octant(glm::vec3 position, int w, Chunk *containerChunk);
 			
 			Octant *getChild(int index) { return octants[index]; }
+			void noiseOctant();
 	};
 
 	class EveTerrain;
@@ -62,8 +63,8 @@ namespace eve {
 			~Chunk() {}
 
 			void remesh(Octant *octant);
-
-		private:
+			void noise();
 			EveTerrain *eveTerrain;
+		private:
 	};
 }

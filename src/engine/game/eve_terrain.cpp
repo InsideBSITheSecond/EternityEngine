@@ -8,16 +8,25 @@ namespace eve {
 		init();
 	}
 
+	EveTerrain::~EveTerrain() {
+		/*remeshingCandidates.clear();
+		remeshingProcessing.clear();
+		remeshingProcessed.clear();
+		chunkMap.clear();*/
+	}
+
 	void EveTerrain::init() {
-		for (int x = -1; x <= 1; x++) {
+		for (int x = -2; x <= 2; x++) {
 			for (int y = -1; y <= 1; y++) {
-				for (int z = -1; z <= 1; z++) {
+				for (int z = -2; z <= 2; z++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
-					Octant *octant = new Octant(voxelMap[1], chunkPos, CHUNK_SIZE, nullptr);
+					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr);
+					octant->voxel = voxelMap[1];
 					Chunk *chunk = new Chunk(octant, chunkPos, this);
 					octant->container = chunk;
 
+					chunk->noise();
 					chunk->id = chunkCount;
 					chunk->isQueued = true;
 					remeshingCandidates.push_back(chunk);
@@ -39,15 +48,29 @@ namespace eve {
 	void EveTerrain::tick() {
 		EASY_FUNCTION(profiler::colors::Magenta);
 
+		// Mark processed chunks as available for rendering
 		for (Chunk *chunk : remeshingProcessed) {
 			chunk->isQueued = false;
 			chunkMap.emplace(chunk->id, chunk);
 		}
 
+		// Move remeshing candidates in the processing queue
 		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
+			Chunk *chunk = *it;
+			chunk->isQueued = true;
+			chunk->chunkObjectMap.clear();
 			pushIfUnique(&remeshingProcessing, *it);
 			pool.pushChunkToRemeshingQueue(*it);
 			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
+		}
+
+		if (shouldReset) {
+			shouldReset = false;
+			remeshingCandidates.clear();
+			remeshingProcessing.clear();
+			remeshingProcessed.clear();
+			chunkMap.clear();
+			init();
 		}
 	}
 
@@ -59,11 +82,7 @@ namespace eve {
 	}*/
 
 	void EveTerrain::reset() {
-		init();
-	}
-
-	EveTerrain::~EveTerrain() {
-
+		shouldReset = true;
 	}
 
 	void fillOctantWithVoxel(Octant *node, int depth, EveVoxel *voxel) {
@@ -207,7 +226,7 @@ namespace eve {
 					// this part of code represent a problem because we imply a filling type of voxel and we erase everything on our path
 					// (fixme)
 					int childWidth = node->width / 2;
-					node->octants[i] = new Octant(voxelMap[1], (node->position + glm::vec3(octreeOffsets[i] * childWidth) / 2), childWidth, node->container);
+					node->octants[i] = new Octant((node->position + glm::vec3(octreeOffsets[i] * childWidth) / 2), childWidth, node->container);
 				}
 			}
 		}

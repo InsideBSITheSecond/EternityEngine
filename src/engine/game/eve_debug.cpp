@@ -363,13 +363,15 @@ namespace eve
 				eveTerrain.reset();
 			}
 			if (ImGui::Button("apply perlin")){
-				for (int x = -24; x < 24; ++x) {
-					for (int z = -24; z < 24; ++z) {
-						const double noise = eveTerrain.perlin.octave2D_01((x * 0.01), (z * 0.01), 4);
-						for (int h = std::lerp(20, -20, noise); h <= 24; h++) {
-							eveTerrain.changeTerrain(glm::ivec3(x, -h, z), eveTerrain.voxelMap[0]);
-						}
-					}
+				EASY_FUNCTION(profiler::colors::Magenta);
+				EASY_BLOCK("Apply Perlin");
+				for (auto it = eveTerrain.chunkMap.begin(); it != eveTerrain.chunkMap.end();) {
+					Chunk *chunk = it->second;
+					chunk->noise();
+					vkDeviceWaitIdle(eveDevice.device());
+					eveTerrain.chunkMap.erase(it++);
+					eveTerrain.remeshingProcessed.erase(std::find(eveTerrain.remeshingProcessed.begin(), eveTerrain.remeshingProcessed.end(), chunk));
+					eveTerrain.remeshingCandidates.push_back(chunk);
 				}
 			}
 			

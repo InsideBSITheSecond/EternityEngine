@@ -51,7 +51,7 @@ namespace eve {
 
 			std::vector<EveVoxel*> voxelMap;
 
-			unsigned int chunkCount;
+			unsigned int chunkCount = 0;
 			std::map<unsigned int, Chunk*> chunkMap;
 
 			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
@@ -63,6 +63,8 @@ namespace eve {
 			std::vector<Chunk*> remeshingCandidates;
 			std::vector<Chunk*> remeshingProcessing;
 			std::vector<Chunk*> remeshingProcessed;
+
+			std::vector<Chunk*> noisingQueue;
 
 			//bool needRebuild = false;
 
@@ -79,6 +81,12 @@ namespace eve {
 
 			siv::PerlinNoise::seed_type seed = 123456u;
 			siv::PerlinNoise perlin{seed};
+
+			int seaLevel = 0;
+			int maxHeight = -24;
+			int minHeight = 24;
+
+			bool shouldReset = false;
 		private:
 			EveThreadPool pool{12};
 

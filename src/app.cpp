@@ -189,6 +189,7 @@ namespace eve
 				(i * glm::two_pi<float>()) / lightColors.size(),
 				{0.f, -1.f, 0.f});
 			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-1.f, -1.f, -1.f, 1.f));
+			pointLight.transform.translation.y = -20;
 			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 		}
 
