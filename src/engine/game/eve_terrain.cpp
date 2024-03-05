@@ -16,9 +16,9 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
-		for (int x = -2; x <= 2; x++) {
+		for (int x = -5; x <= 5; x++) {
 			for (int y = -1; y <= 1; y++) {
-				for (int z = -2; z <= 2; z++) {
+				for (int z = -5; z <= 5; z++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
 					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr);
@@ -47,6 +47,7 @@ namespace eve {
 
 	void EveTerrain::tick() {
 		EASY_FUNCTION(profiler::colors::Magenta);
+		EASY_BLOCK("Terrain Tick");
 
 		// Mark processed chunks as available for rendering
 		for (Chunk *chunk : remeshingProcessed) {
