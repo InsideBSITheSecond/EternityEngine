@@ -49,6 +49,16 @@ namespace eve {
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Terrain Tick");
 
+		if (previousMeshingMode != meshingMode) {
+			previousMeshingMode = meshingMode;
+			pool.meshingMode = meshingMode;
+			for (auto& kv : chunkMap) {
+				Chunk *chunk = kv.second;
+				remeshingCandidates.push_back(chunk);
+			}
+			chunkMap.clear();
+		}
+
 		// Mark processed chunks as available for rendering
 		for (Chunk *chunk : remeshingProcessed) {
 			chunk->isQueued = false;

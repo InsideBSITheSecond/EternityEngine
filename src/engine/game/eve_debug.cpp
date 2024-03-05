@@ -293,11 +293,17 @@ namespace eve
 		ImGui::Text("points: %i ", cubes * 6 * 2 * 3);
 
 		if (ImGui::CollapsingHeader("Rendering")) {
-			static int mode = 0;
-			ImGui::RadioButton("fill", &mode, 0); ImGui::SameLine();
-			ImGui::RadioButton("line", &mode, 1);
-			if (mode == 0) requestedRenderMode = VK_POLYGON_MODE_FILL;
-			else if (mode == 1) requestedRenderMode = VK_POLYGON_MODE_LINE;
+			static int renderMode = 0;
+			ImGui::RadioButton("fill", &renderMode, 0); ImGui::SameLine();
+			ImGui::RadioButton("line", &renderMode, 1);
+			if (renderMode == 0) requestedRenderMode = VK_POLYGON_MODE_FILL;
+			else if (renderMode == 1) requestedRenderMode = VK_POLYGON_MODE_LINE;
+
+			static int meshingMode = 0;
+			ImGui::RadioButton("octant", &meshingMode, 0); ImGui::SameLine();
+			ImGui::RadioButton("chunk", &meshingMode, 1);
+			if (meshingMode == 0) eveTerrain.meshingMode = MESHING_OCTANT;
+			else if (meshingMode == 1) eveTerrain.meshingMode = MESHING_CHUNK;
 		}
 		
 		if (ImGui::CollapsingHeader("FPS")) {

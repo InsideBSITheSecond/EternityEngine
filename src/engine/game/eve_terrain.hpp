@@ -4,6 +4,7 @@
 #include "eve_game_object.hpp"
 #include "eve_chunk.hpp"
 #include "../device/eve_device.hpp"
+#include "../utils/eve_enums.hpp"
 
 #include "../../libs/PerlinNoise/PerlinNoise.hpp"
 
@@ -21,6 +22,7 @@
 #include "../utils/eve_threads.hpp"
 
 namespace eve {
+	
 	class EveTerrain {
 		public:
 			EveTerrain(EveDevice &device);
@@ -38,21 +40,18 @@ namespace eve {
 
 			void pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk);
 
-			void rebuildTerrainMeshesLine();
-			void rebuildTerrainMeshesFill();
-
 			void init();
 			void reset();
 
-			void cookOctantMeshTransparentMode(Octant *octant);
 			void createNewVoxel(std::string name, bool value);
 
 			EveDevice &eveDevice;
 
 			std::vector<EveVoxel*> voxelMap;
-
 			unsigned int chunkCount = 0;
 			std::map<unsigned int, Chunk*> chunkMap;
+
+			EveTerrainMeshingMode meshingMode = MESHING_OCTANT;
 
 			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
 
@@ -89,6 +88,6 @@ namespace eve {
 			bool shouldReset = false;
 		private:
 			EveThreadPool pool{12};
-
+			EveTerrainMeshingMode previousMeshingMode = MESHING_OCTANT;
 	};
 }

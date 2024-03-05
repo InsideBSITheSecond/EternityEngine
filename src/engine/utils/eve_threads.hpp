@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../game/eve_terrain.hpp"
+#include "eve_enums.hpp"
 
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/chrono.hpp>
@@ -42,7 +43,10 @@ namespace eve {
 			}
 
 			void pushChunkToRemeshingQueue(Chunk *chunk) {
-				io_service_->post(boost::bind(&Chunk::remesh, chunk, chunk->root));
+				if (meshingMode == MESHING_OCTANT)
+					io_service_->post(boost::bind(&Chunk::remesh, chunk, chunk->root));
+				if (meshingMode == MESHING_CHUNK)
+					io_service_->post(boost::bind(&Chunk::remesh2, chunk, chunk->root));
 			}
 
 			void pushChunkToNoisingQueue(Chunk *chunk) {
@@ -61,6 +65,7 @@ namespace eve {
 				threadpool_.join_all();
 			}
 
+			EveTerrainMeshingMode meshingMode = MESHING_OCTANT;
 		private:
 			boost::shared_ptr<boost::asio::io_service> io_service_;
 			boost::shared_ptr<boost::asio::io_service::work> work_;

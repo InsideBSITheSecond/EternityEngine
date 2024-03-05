@@ -63,6 +63,8 @@ namespace eve {
 			~Chunk() {}
 
 			void remesh(Octant *octant);
+			void remesh2(Octant *octant);
+
 			void noise();
 			EveTerrain *eveTerrain;
 		private:

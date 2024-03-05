@@ -114,4 +114,18 @@ namespace eve {
 			}
 		}
 	}
+
+	void Chunk::remesh2(Octant *octant) {
+		if (octant->isAllSame || octant->isLeaf) {
+
+		} else {
+			for (Octant *oct : octant->octants) {
+				remesh2(oct);
+			}
+		}
+
+		if (octant->container->root == octant) {
+			
+		}
+	}
 }
