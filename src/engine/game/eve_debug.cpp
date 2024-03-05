@@ -279,9 +279,18 @@ namespace eve
     	ImGuiIO& io = ImGui::GetIO(); (void)io;
 		
 		ImGui::Begin("Infos");    
-		ImGui::Text("Remeshing candidates: %zu", eveTerrain.remeshingCandidates.size());
-		ImGui::Text("Remeshing processing: %zu", eveTerrain.remeshingProcessing.size());
-		ImGui::Text("Remeshing processed: %zu", eveTerrain.remeshingProcessed.size());
+		ImGui::Text("candidates: %zu ", eveTerrain.remeshingCandidates.size()); ImGui::SameLine();
+		ImGui::Text("processing: %zu ", eveTerrain.remeshingProcessing.size()); ImGui::SameLine();
+		ImGui::Text("processed: %zu ", eveTerrain.remeshingProcessed.size());
+
+		int cubes = 0;
+		for (auto& kv : eveTerrain.chunkMap) {
+			Chunk *chunk = kv.second;
+			cubes += chunk->chunkObjectMap.size();
+		}
+		ImGui::Text("cubes: %i ", cubes);
+		ImGui::Text("triangles: %i ", cubes * 6 * 2);
+		ImGui::Text("points: %i ", cubes * 6 * 2 * 3);
 
 		if (ImGui::CollapsingHeader("Rendering")) {
 			static int mode = 0;
