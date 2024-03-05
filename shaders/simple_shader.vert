@@ -29,6 +29,7 @@ layout(push_constant) uniform Push {
 } push;
 
 const float AMBIENT = 0.05;
+const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
 
 // MATRIX MULTIPLICATION ORDER MATTERS
 void main() {
@@ -36,5 +37,7 @@ void main() {
 	gl_Position = ubo.projectionMatrix * ubo.viewMatrix * positionWorld;
 	fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
 	fragPosWorld = positionWorld.xyz;
-	fragColor = color;
+	float lightIntensity = max(dot(fragNormalWorld, DIRECTION_TO_LIGHT), 0);
+	
+	fragColor = lightIntensity * color;
 }
