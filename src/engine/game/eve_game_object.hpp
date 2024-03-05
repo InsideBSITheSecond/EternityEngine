@@ -38,6 +38,8 @@ namespace eve
 
 		static EveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 
+		~EveGameObject();
+
 		EveGameObject(const EveGameObject &) = delete;
 		EveGameObject &operator=(const EveGameObject &) = delete;
 		EveGameObject(EveGameObject &&) = default;
