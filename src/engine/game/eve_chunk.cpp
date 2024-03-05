@@ -24,6 +24,9 @@ namespace eve {
 	}
 
 	void Octant::noiseOctant(){
+		EASY_FUNCTION(profiler::colors::Magenta);
+		EASY_BLOCK("Octant noise");
+
 		EveTerrain *terrain = container->eveTerrain;
 
 		if (isLeaf) {
@@ -58,6 +61,9 @@ namespace eve {
 	}
 
 	void Chunk::noise() {
+		EASY_FUNCTION(profiler::colors::Magenta);
+		EASY_BLOCK("Chunk noise");
+
 		int childWidth = root->width / 2;
 		for (int i = 0; i < 8; i++) {
 			if (!root->octants[i])

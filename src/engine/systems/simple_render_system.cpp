@@ -87,6 +87,9 @@ namespace eve
 
 	void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo)
 	{
+		EASY_FUNCTION(profiler::colors::Blue);
+		EASY_BLOCK("renderGameObjects");
+
 		requestedRenderMode = frameInfo.debugMenu.requestedRenderMode;
 		switchRenderMode();
 
@@ -100,6 +103,7 @@ namespace eve
 			&frameInfo.globalDescriptorSet,
 			0, nullptr);
 
+		EASY_BLOCK("gameObjects");
 		for (auto& kv : frameInfo.gameObjects)
 		{
 			auto& obj = kv.second;
@@ -120,11 +124,14 @@ namespace eve
 			obj.model->bind(frameInfo.commandBuffer);
 			obj.model->draw(frameInfo.commandBuffer);
 		}
+		EASY_END_BLOCK;
 		
+		EASY_BLOCK("chunkObjects");
 		for (auto &kv : frameInfo.terrain.chunkMap) {
 			Chunk *chunk = kv.second;
 			if (!chunk->isQueued) {
 				for (auto& kv : chunk->chunkObjectMap) {
+					EASY_BLOCK("single cube");
 					auto& obj = kv.second;
 					SimplePushConstantData push{};
 					push.modelMatrix = obj.transform.mat4();
@@ -140,8 +147,10 @@ namespace eve
 
 					obj.model->bind(frameInfo.commandBuffer);
 					obj.model->draw(frameInfo.commandBuffer);
+					EASY_END_BLOCK;
 				}
 			}
 		}
+		EASY_END_BLOCK;
 	}
 }

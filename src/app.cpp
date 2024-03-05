@@ -119,6 +119,7 @@ namespace eve
 					eveTerrain};
 
 				// update
+				EASY_BLOCK("Update");
 				GlobalUbo ubo{};
 				ubo.projectionMatrix = camera.getProjection();
 				ubo.viewMatrix = camera.getView();
@@ -126,15 +127,26 @@ namespace eve
 				pointLightSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
+				EASY_END_BLOCK;
+
 
 				// render
+				EASY_BLOCK("Render");
 				//boost::lock_guard<boost::mutex> lock(eveTerrain.mutex);
 				eveRenderer.beginSwapChainRenderPass(commandBuffer);
 
 				// order here matters
+				EASY_BLOCK("Simple render system");
 				simpleRenderSystem.renderGameObjects(frameInfo);
+				EASY_END_BLOCK;
+
+				EASY_BLOCK("Point light system");
 				pointLightSystem.render(frameInfo);
+				EASY_END_BLOCK;
+
+				EASY_BLOCK("IMGUI system");
 				imGuiSystem.render(frameInfo);
+				EASY_END_BLOCK;
 				
 				eveRenderer.endSwapChainRenderPass(commandBuffer);
 				eveRenderer.endFrame();
