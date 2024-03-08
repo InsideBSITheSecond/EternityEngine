@@ -29,19 +29,34 @@ namespace eve {
 			EveVoxel *voxel;
 			Octant *octants[8];
 
-			int width;
+			/*
+			* 0: left	   top		near
+			* 1: left	   top		far
+			* 2: right	   top		near
+			* 3: right	   top		far
+			* 4: left	   bot		near
+			* 5: left	   bot		far
+			* 6: right	   bot		near
+			* 7: right	   bot		far
+			* */
 
+			int width;
 			glm::vec3 position;
 
 			bool isAllSame = false;
-			//bool isRoot = false;
 			bool isLeaf = false;
 
 			Chunk *container;
+			Octant *parent;
 
-			Octant(glm::vec3 position, int w, Chunk *containerChunk);
+			Octant(glm::vec3 position, int w, Chunk *containerChunk, Octant *parentOctant);
 			
 			Octant *getChild(int index) { return octants[index]; }
+			void isContained();
+
+			std::vector<Octant *> getNeighborsTop();
+			bool isTopExposed();
+
 			void noiseOctant();
 	};
 
@@ -49,7 +64,15 @@ namespace eve {
 	class Chunk {
 		public:
 			Octant *root;
-
+			Chunk *neighbors[6];
+			/*
+			* 0: top
+			* 1: down
+			* 2: left
+			* 3: right
+			* 4: near
+			* 5: far
+			* */
 			unsigned int id;
 
 			bool isQueued = false;
@@ -58,7 +81,12 @@ namespace eve {
 			glm::ivec3 position;
 			EveGameObject::Map chunkObjectMap;
 
-			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain): root{r}, position{pos}, eveTerrain{terrain} {};
+
+
+			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain): root{r}, position{pos}, eveTerrain{terrain} {
+				for (int i = 0; i < 6; i++)
+					neighbors[i] = nullptr;
+			};
 
 			~Chunk() {}
 

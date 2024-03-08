@@ -51,9 +51,10 @@ namespace eve {
 			unsigned int chunkCount = 0;
 			std::map<unsigned int, Chunk*> chunkMap;
 
-			EveTerrainMeshingMode meshingMode = MESHING_OCTANT;
+			EveTerrainMeshingMode meshingMode = MESHING_CHUNK;
 
 			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj");
+			std::shared_ptr<EveModel> eveQuad = EveModel::createModelFromFile(eveDevice, "models/quad.obj");
 
 			//std::vector<Chunk> refinementCandidates;
 			//std::vector<Chunk> refinementProcessed;
@@ -82,12 +83,12 @@ namespace eve {
 			siv::PerlinNoise perlin{seed};
 
 			int seaLevel = 0;
-			int maxHeight = -24;
-			int minHeight = 24;
+			int maxHeight = -48;
+			int minHeight = 48;
 
 			bool shouldReset = false;
 		private:
-			EveThreadPool pool{12};
-			EveTerrainMeshingMode previousMeshingMode = MESHING_OCTANT;
+			EveThreadPool pool{1};
+			EveTerrainMeshingMode previousMeshingMode = MESHING_CHUNK;
 	};
 }

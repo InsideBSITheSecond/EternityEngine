@@ -16,12 +16,13 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
-		for (int x = -5; x <= 5; x++) {
-			for (int y = -1; y <= 1; y++) {
-				for (int z = -5; z <= 5; z++) {
+		for (int x = -1; x <= 1; x++) {
+			for (int z = -1; z <= 1; z++) {
+				Chunk *prevY = nullptr;
+				for (int y = -1; y <= 1; y++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
-					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr);
+					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr, nullptr);
 					octant->voxel = voxelMap[1];
 					Chunk *chunk = new Chunk(octant, chunkPos, this);
 					octant->container = chunk;
@@ -29,7 +30,10 @@ namespace eve {
 					chunk->noise();
 					chunk->id = chunkCount;
 					chunk->isQueued = true;
+					chunk->neighbors[0] = prevY;
 					remeshingCandidates.push_back(chunk);
+
+					prevY = chunk;
 				}
 			}
 		}
@@ -56,6 +60,7 @@ namespace eve {
 				Chunk *chunk = kv.second;
 				remeshingCandidates.push_back(chunk);
 			}
+			vkDeviceWaitIdle(eveDevice.device());
 			chunkMap.clear();
 		}
 
@@ -64,6 +69,7 @@ namespace eve {
 			chunk->isQueued = false;
 			chunkMap.emplace(chunk->id, chunk);
 		}
+		remeshingProcessed.clear();
 
 		// Move remeshing candidates in the processing queue
 		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
@@ -237,7 +243,7 @@ namespace eve {
 					// this part of code represent a problem because we imply a filling type of voxel and we erase everything on our path
 					// (fixme)
 					int childWidth = node->width / 2;
-					node->octants[i] = new Octant((node->position + glm::vec3(octreeOffsets[i] * childWidth) / 2), childWidth, node->container);
+					node->octants[i] = new Octant((node->position + glm::vec3(octreeOffsets[i] * childWidth) / 2), childWidth, node->container, node);
 				}
 			}
 		}
