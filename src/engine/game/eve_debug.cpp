@@ -36,12 +36,6 @@ namespace eve
 		//createVertexBuffers(builder.vertices);
 		//createIndexBuffers(builder.indices);
 
-		glfwSetWindowUserPointer(eveWindow.getGLFWwindow(), this);
-		auto func = [](GLFWwindow* w, int k, int s, int a, int m)
-		{
-			static_cast<EveDebug*>(glfwGetWindowUserPointer(w))->key_callback(w, k, s, a, m);
-		};
-		glfwSetKeyCallback(eveWindow.getGLFWwindow(), func);
 	}
 
 	EveDebug::~EveDebug()

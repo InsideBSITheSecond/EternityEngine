@@ -41,6 +41,11 @@ namespace eve {
 		//root->position = glm::vec3(-ROOT_SIZE, 0, ROOT_SIZE); //del
 	}
 
+	void EveTerrain::onMouseWheel(GLFWwindow *window, double xoffset, double yoffset) {
+		playerCurrentLevel += -yoffset;
+		std::cout << "level: " << playerCurrentLevel << std::endl;
+	}
+
 	void EveTerrain::pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk) {
 		auto find = std::find(list->begin(), list->end(), chunk);
 		if (find != list->end()) {

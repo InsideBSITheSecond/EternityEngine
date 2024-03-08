@@ -40,6 +40,8 @@ namespace eve {
 
 			void pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk);
 
+			void onMouseWheel(GLFWwindow *window, double xoffset, double yoffset);
+
 			void init();
 			void reset();
 
@@ -85,6 +87,8 @@ namespace eve {
 			int seaLevel = 0;
 			int maxHeight = -48;
 			int minHeight = 48;
+
+			int playerCurrentLevel = 0;
 
 			bool shouldReset = false;
 		private:
