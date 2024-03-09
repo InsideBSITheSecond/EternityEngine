@@ -293,7 +293,7 @@ namespace eve
 			if (renderMode == 0) requestedRenderMode = VK_POLYGON_MODE_FILL;
 			else if (renderMode == 1) requestedRenderMode = VK_POLYGON_MODE_LINE;
 
-			static int meshingMode = 0;
+			static int meshingMode = 1;
 			ImGui::RadioButton("octant", &meshingMode, 0); ImGui::SameLine();
 			ImGui::RadioButton("chunk", &meshingMode, 1);
 			if (meshingMode == 0) eveTerrain.meshingMode = MESHING_OCTANT;

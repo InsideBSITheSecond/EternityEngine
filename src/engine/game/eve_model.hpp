@@ -44,7 +44,7 @@ namespace eve {
 				std::vector<Vertex> vertices{};
 				std::vector<uint32_t> indices{};
 
-				void loadModel(const std::string &filepath);
+				void loadModel(const std::string &filepath, glm::vec3 color);
 			};
 			
 			EveModel(EveDevice &device, const EveModel::Builder &builder);
@@ -53,7 +53,7 @@ namespace eve {
 			EveModel(const EveModel&) = delete;
 			EveModel &operator=(const EveModel&) = delete;
 
-			static std::unique_ptr<EveModel> createModelFromFile(EveDevice &device, const std::string &filepath);
+			static std::unique_ptr<EveModel> createModelFromFile(EveDevice &device, const std::string &filepath, glm::vec3 color);
 			static std::unique_ptr<EveModel> createCubeModel(EveDevice &device);
 
 			void bind(VkCommandBuffer commandBuffer);

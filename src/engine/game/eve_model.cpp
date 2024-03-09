@@ -42,10 +42,10 @@ namespace eve
 	{
 	}
 
-	std::unique_ptr<EveModel> EveModel::createModelFromFile(EveDevice &device, const std::string &filepath)
+	std::unique_ptr<EveModel> EveModel::createModelFromFile(EveDevice &device, const std::string &filepath, glm::vec3 color)
 	{
 		Builder builder{};
-		builder.loadModel(filepath);
+		builder.loadModel(filepath, color);
 		//std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
 
 		/*int i = 0;
@@ -163,7 +163,7 @@ namespace eve
 		return attributeDescriptions;
 	}
 
-	void EveModel::Builder::loadModel(const std::string &filepath)
+	void EveModel::Builder::loadModel(const std::string &filepath, glm::vec3 color)
 	{
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
@@ -194,10 +194,11 @@ namespace eve
 						attrib.vertices[3 * index.vertex_index + 1],
 						attrib.vertices[3 * index.vertex_index + 2]};
 
-					vertex.color = {
+					vertex.color = color;
+					/*vertex.color = {
 						attrib.colors[3 * index.vertex_index + 0],
 						attrib.colors[3 * index.vertex_index + 1],
-						attrib.colors[3 * index.vertex_index + 2]};
+						attrib.colors[3 * index.vertex_index + 2]};*/
 				}
 
 				if (index.normal_index >= 0)

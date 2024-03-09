@@ -13,6 +13,13 @@ namespace eve {
 	static constexpr int CHUNK_SIZE = 16;
 	static constexpr int MAX_THREADS = 16;
 
+	enum FaceColors {
+		RED,
+		GREEN,
+		BLUE,
+		MARK
+	};
+
 
 	class EveVoxel {
 		public:
@@ -40,6 +47,7 @@ namespace eve {
 			* 7: right	   bot		far
 			* */
 
+			int si = -1; // qol variable, unused
 			int width;
 			glm::vec3 position;
 
@@ -91,6 +99,8 @@ namespace eve {
 			~Chunk() {}
 
 			void remesh(Octant *octant);
+
+			void createFace(Octant *octant, FaceColors color);
 			void remesh2(Octant *octant);
 
 			void noise();
