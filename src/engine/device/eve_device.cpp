@@ -8,6 +8,35 @@
 
 namespace eve
 {
+	const char* getDebugSeverityStr(VkDebugUtilsMessageSeverityFlagBitsEXT Severity) {
+		switch (Severity) {
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+				return "Verbose";
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+				return "Info";
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+				return "Warning";
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+				return "Error";
+			default:
+				return "invalid";
+		}
+	}
+
+	const char* getDebugTypeStr(VkDebugUtilsMessageTypeFlagsEXT Type) {
+		switch (Type) {
+			case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
+				return "General";
+			case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
+				return "Validation";
+			case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
+				return "Performance";
+			case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT:
+				return "Device address binding";
+			default:
+				return "Invalid";
+		}
+	}
 
 	// local callback functions
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -16,7 +45,15 @@ namespace eve
 		const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
 		void *pUserData)
 	{
-		std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+		std::cerr << "validation layer error:" << std::endl;
+		std::cerr << "Debug callback: " << pCallbackData->pMessage << std::endl;
+		std::cerr << "Severity: " << getDebugSeverityStr(messageSeverity) << std::endl;
+		std::cerr << "Type: " << getDebugTypeStr(messageType) << std::endl;
+		std::cerr << "Objects: " << std::endl; 
+
+		for (uint32_t i = 0; i < pCallbackData->objectCount; i++) {
+			std::cerr << pCallbackData->pObjects[i].pObjectName << " " << pCallbackData->pObjects[i].objectType << " " << pCallbackData->pObjects[i].objectHandle << std::endl;
+		}
 
 		return VK_FALSE;
 	}
@@ -175,6 +212,7 @@ namespace eve
 
 		VkPhysicalDeviceFeatures deviceFeatures = {};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.fillModeNonSolid = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
