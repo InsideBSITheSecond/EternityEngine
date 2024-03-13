@@ -9,6 +9,7 @@
 
 namespace eve {
 	#define MAX_LIGHTS 10
+	class EveDebug;
 
 	struct PointLight {
 		glm::vec4 position{}; // ignore w
