@@ -20,6 +20,21 @@ namespace eve {
 	static const std::vector<glm::vec3> BLUE = {glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)};
 	static const std::vector<glm::vec3> MARK = {glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(0, 0, 0)};
 
+	struct OctantSide{
+		int direction;
+		int start;
+		int step;
+	};
+
+	class OctantSides{
+		OctantSide Top = {4, 0, 1};
+		OctantSide Down = {4, 4, 1};
+		OctantSide Left = {2, 0, 2};
+		OctantSide Right = {2, 2, 2};
+		OctantSide Near = {1, 0, 2};
+		OctantSide Far = {1, 1, 2};
+	};
+
 	class EveVoxel {
 		public:
 			unsigned int id;
@@ -71,7 +86,7 @@ namespace eve {
 			std::vector<Octant *> getNeighborsTop();
 			bool isTopExposed();
 
-			void noiseOctant();
+			void noiseOctant(Octant *octant);
 
 			glm::vec3 getChildLocalOffset();
 	};
@@ -92,6 +107,10 @@ namespace eve {
 			unsigned int id;
 
 			bool isQueued = false;
+			bool generated = false;
+
+			glm::ivec2 countTracker = glm::ivec2(0);
+
 			boost::mutex mutex;
 
 			glm::ivec3 position;
@@ -114,7 +133,7 @@ namespace eve {
 			void createFace(Octant *octant, std::vector<glm::vec3> colors);
 			void remesh2(Octant *octant);
 
-			void noise();
+			void noise(Octant *octant);
 			EveTerrain *eveTerrain;
 		private:
 	};

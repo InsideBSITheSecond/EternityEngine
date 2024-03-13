@@ -50,7 +50,7 @@ namespace eve {
 			}
 
 			void pushChunkToNoisingQueue(Chunk *chunk) {
-				//io_service_->post(boost::bind(&Chunk::noise, chunk, chunk->root));
+				io_service_->post(boost::bind(&Chunk::noise, chunk, chunk->root));
 			}
 
 			void runFakeTasks(std::size_t jobsize) {

@@ -130,23 +130,28 @@ namespace eve
 		for (auto &kv : frameInfo.terrain.chunkMap) {
 			Chunk *chunk = kv.second;
 			if (!chunk->isQueued) {
+				boost::lock_guard<boost::mutex> lock(chunk->mutex);
+
 				for (auto& kv : chunk->chunkObjectMap) {
 					EASY_BLOCK("single cube");
 					auto& obj = kv.second;
-					SimplePushConstantData push{};
-					push.modelMatrix = obj.transform.mat4();
-					push.normalMatrix = obj.transform.normalMatrix();
 
-					vkCmdPushConstants(
-						frameInfo.commandBuffer,
-						pipelineLayout,
-						VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-						0,
-						sizeof(SimplePushConstantData),
-						&push);
+					if (obj.model) {
+						SimplePushConstantData push{};
+						push.modelMatrix = obj.transform.mat4();
+						push.normalMatrix = obj.transform.normalMatrix();
 
-					obj.model->bind(frameInfo.commandBuffer);
-					obj.model->draw(frameInfo.commandBuffer);
+						vkCmdPushConstants(
+							frameInfo.commandBuffer,
+							pipelineLayout,
+							VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+							0,
+							sizeof(SimplePushConstantData),
+							&push);
+
+						obj.model->bind(frameInfo.commandBuffer);
+						obj.model->draw(frameInfo.commandBuffer);
+					}
 					EASY_END_BLOCK;
 				}
 			}

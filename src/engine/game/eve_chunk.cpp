@@ -26,41 +26,44 @@ namespace eve {
 		}
 	}
 
-	void Octant::noiseOctant(){
+	void Octant::noiseOctant(Octant *octant){
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Octant noise");
 
-		EveTerrain *terrain = container->eveTerrain;
+		EveTerrain *terrain = octant->container->eveTerrain;
 
 		if (isLeaf) {
-			float noise = terrain->perlin.octave2D_01((position.x * 0.01), (position.z * 0.01), 4);
+			float noise = terrain->perlin.octave2D_01((octant->position.x * 0.01), (octant->position.z * 0.01), 4);
 			float terrainHeight = std::lerp(terrain->minHeight, terrain->maxHeight, noise);
+			//std::cout << terrainHeight << " ";
 
-			if (terrainHeight > position.y)
+			if (terrainHeight > octant->position.y) {
 				voxel = terrain->voxelMap[0];
-			else
+				octant->container->countTracker.x += 1;
+			} else {
 				voxel = terrain->voxelMap[1];
+				octant->container->countTracker.y += 1;
+			}
 		}
 		else {
-			int childWidth = width / 2;
+			int childWidth = octant->width / 2;
 			for (int i = 0; i < 8; i++) {
-				if (!octants[i])
-					octants[i] = new Octant((position + glm::vec3(terrain->octreeOffsets[i] * childWidth) / 2), childWidth, container, this);
-				octants[i]->noiseOctant();
-				octants[i]->si = i;
+				if (!octant->octants[i])
+					octants[i] = new Octant((octant->position + glm::vec3(terrain->octreeOffsets[i] * childWidth) / 2), childWidth, octant->container, octant);
+				octant->octants[i]->noiseOctant(octant->octants[i]);
+				octant->octants[i]->si = i;
 			}
 		}
 
-		if (!isLeaf) {
-			EveVoxel *sample = octants[0]->voxel;
+		if (!octant->isLeaf) {
+			EveVoxel *sample = octant->octants[0]->voxel;
 			for (int i = 1; i < 8; i++) {
-				if (!(octants[i]->voxel == sample)) {
-					isAllSame = false;
-					return;
+				if (!(octant->octants[i]->voxel == sample)) {
+					octant->isAllSame = false;
 				}
 			}
-			isAllSame = true;
-			voxel = sample;
+			if (octant->isAllSame)
+				octant->voxel = sample;
 		}
 	}
 
@@ -75,26 +78,43 @@ namespace eve {
 		return offset;
 	}
 
-	void Chunk::noise() {
+	void Chunk::noise(Octant *octant) {
+		boost::lock_guard<boost::mutex> lock(mutex);
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Chunk noise");
 
 		int childWidth = root->width / 2;
 		for (int i = 0; i < 8; i++) {
-			if (!root->octants[i])
-				root->octants[i] = new Octant((root->position + glm::vec3(eveTerrain->octreeOffsets[i] * childWidth) / 2), childWidth, root->container, root);
-			root->octants[i]->noiseOctant();
-			root->octants[i]->si = i; // this is just for qol
+			if (!octant->octants[i])
+				octant->octants[i] = new Octant((octant->position + glm::vec3(eveTerrain->octreeOffsets[i] * childWidth) / 2), childWidth, octant->container, octant);
+			octant->octants[i]->noiseOctant(octant->octants[i]);
+			octant->octants[i]->si = i; // this is just for qol
 		}
-		EveVoxel *sample = root->octants[0]->voxel;
+		EveVoxel *sample = octant->octants[0]->voxel;
 		for (int i = 1; i < 8; i++) {
-			if (!(root->octants[i]->voxel == sample)) {
-				root->isAllSame = false;
-				return;
+			if (!(octant->octants[i]->voxel == sample)) {
+				octant->isAllSame = false;
 			}
 		}
-		root->isAllSame = true;
-		root->voxel = sample;
+		if (octant->container->countTracker.x > octant->container->countTracker.y) {
+			std::cout << "hi";
+		}
+		
+		if (octant->isAllSame)
+			octant->voxel = sample;
+
+
+		EASY_BLOCK("Push Noised Chunk");
+		boost::lock_guard<boost::mutex> lock2(eveTerrain->mutex);
+
+		eveTerrain->noisingProcessing.erase(
+			std::find(eveTerrain->noisingProcessing.begin(),
+			eveTerrain->noisingProcessing.end(),
+			octant->container));
+
+		eveTerrain->noisingProcessed.push_back(octant->container);
+
+		std::cout << "Finished a chunk noising" << glm::to_string(octant->container->position) << " " << glm::to_string(octant->container->countTracker) << std::endl;
 	}
 
 	void Chunk::remesh(Octant *octant) {
@@ -104,14 +124,16 @@ namespace eve {
 		if (octant) 
 		{
 			if (octant->isAllSame || octant->isLeaf) {
-				if (octant->voxel->id != 0) {
-					boost::lock_guard<boost::mutex> lock(mutex);
+				if (octant->voxel) {
+					if (octant->voxel->id != 0) {
+						boost::lock_guard<boost::mutex> lock(mutex);
 
-					auto cube = EveGameObject::createGameObject();
-					cube.model = eveTerrain->eveCube;
-					cube.transform.translation = octant->position;
-					cube.transform.scale = (glm::vec3(octant->width)) / 2;
-					chunkObjectMap.emplace(cube.getId(), std::move(cube));
+						auto cube = EveGameObject::createGameObject();
+						cube.model = eveTerrain->eveCube;
+						cube.transform.translation = octant->position;
+						cube.transform.scale = (glm::vec3(octant->width)) / 2;
+						chunkObjectMap.emplace(cube.getId(), std::move(cube));
+					}
 				}
 			} else {
 				for (int i = 0; i < 8; i++) {
@@ -276,21 +298,6 @@ namespace eve {
 		return std::vector<Octant *> {};
 	}
 
-	bool Octant::isTopExposed() {
-		int selfIndex = 0;
-		if (parent)
-			while (parent->octants[selfIndex] != this)
-				selfIndex++;
-		
-		if (selfIndex >= 4) {
-			if (parent->octants[7 - selfIndex]->voxel == container->eveTerrain->voxelMap[0]) {
-				return true;}
-			else {
-				return false;}
-		}
-		return false;
-	}
-
 	void Chunk::createFace(Octant *octant, std::vector<glm::vec3> colors) {
 		boost::lock_guard<boost::mutex> lock(mutex);
 
@@ -335,19 +342,16 @@ namespace eve {
 			index += chunkBuilder.vertices.size();
 			chunkBuilder.indices.push_back(index);
 		}
-
-		
 	}
 
 	void Chunk::remesh2(Octant *octant) {
+		EASY_FUNCTION(profiler::colors::Green100);
+		EASY_BLOCK("Remesh 2");
+
 		if (octant->isAllSame || octant->isLeaf) {
-			//if (octant->container->position == glm::ivec3(16, 0, 16))
-			//	std::cout << "hello";
+			EASY_BLOCK("Worth considering for render");
 			std::vector<Octant *> neighbors = octant->getNeighborsTop();
-			// if (neighbors.size() == 0){
-			// 	std::cout << "";
-			// }
-			// std::cout << neighbors.size();
+
 			if (neighbors.size() == 1) { // same size
 				if (neighbors.front()->voxel == eveTerrain->voxelMap[0] &&
 					octant->voxel != eveTerrain->voxelMap[0]) {
@@ -375,9 +379,6 @@ namespace eve {
 				}
 			}
 			else if (neighbors.size() > 1) { 
-				if (neighbors.size() > 4) {
-					std::cout << "r";
-				}
 				bool allSolid = true;
 				for (Octant* oct : neighbors) {
 					if (oct->voxel == eveTerrain->voxelMap[0]) {
@@ -393,43 +394,26 @@ namespace eve {
 					}
 				}
 			}
-
-			//std::cout << " ";
-
-			/*else if (!octant->container->neighbors[0]) {
-				int selfIndex = 0;
-				if (octant->parent)
-					while (octant->parent->octants[selfIndex] != octant)
-						selfIndex++;
-				//if (selfIndex <= 3)
-				//	createFace(octant);
-			}*/
 		} else {
+			EASY_BLOCK("Recursion");
 			for (Octant *oct : octant->octants) {
 				remesh2(oct);
 			}
 		}
 
 		if (octant->container->root == octant) {
-			boost::lock_guard<boost::mutex> lock(mutex);
+			EASY_BLOCK("Push chunk object");
+			boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
+			boost::lock_guard<boost::mutex> lock2(mutex);
 			EveTerrain *eveTerrain = octant->container->eveTerrain;
 
-			if (chunkBuilder.vertices.size() >= 3) {
-				chunkModel = std::make_unique<EveModel>(eveTerrain->eveDevice, chunkBuilder);
-			}
+			eveTerrain->remeshingProcessing.erase(
+				std::find(eveTerrain->remeshingProcessing.begin(),
+				eveTerrain->remeshingProcessing.end(),
+				this));
 
-			auto object = EveGameObject::createGameObject();
-			object.model = chunkModel;
-			object.transform.translation = octant->position;
-
-			//object.transform.translation.y -= octant->width;
-			//object.transform.scale = glm::vec3(octant->width / 2);
-
-			chunkObjectMap.emplace(object.getId(), std::move(object));
-			eveTerrain->remeshingProcessing.erase(std::find(eveTerrain->remeshingProcessing.begin(), eveTerrain->remeshingProcessing.end(), this));
 			eveTerrain->remeshingProcessed.push_back(this);
-			std::string pos = glm::to_string(this->position);
-			std::cout << std::endl << "Finished a chunk remeshing" << pos << std::endl;
+			std::cout << "Finished a chunk remeshing" << glm::to_string(this->position) << " vertices: " << octant->container->chunkBuilder.vertices.size() << std::endl;
 		}
 	}
 }

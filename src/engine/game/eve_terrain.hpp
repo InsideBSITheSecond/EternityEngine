@@ -38,8 +38,6 @@ namespace eve {
 			void changeTerrain(glm::ivec3 pos, EveVoxel *voxel);
 			Octant* changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
 
-			void pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk);
-
 			void onMouseWheel(GLFWwindow *window, double xoffset, double yoffset);
 
 			void init();
@@ -69,7 +67,9 @@ namespace eve {
 			std::vector<Chunk*> remeshingProcessing;
 			std::vector<Chunk*> remeshingProcessed;
 
-			std::vector<Chunk*> noisingQueue;
+			std::vector<Chunk*> noisingCandidates;
+			std::vector<Chunk*> noisingProcessing;
+			std::vector<Chunk*> noisingProcessed;
 
 			//bool needRebuild = false;
 
@@ -95,7 +95,8 @@ namespace eve {
 
 			bool shouldReset = false;
 		private:
-			EveThreadPool pool{1};
+			EveThreadPool noisingPool{4};
+			EveThreadPool meshingPool{2};
 			EveTerrainMeshingMode previousMeshingMode = MESHING_CHUNK;
 	};
 }

@@ -274,18 +274,19 @@ namespace eve
 		
 		ImGui::Begin("Infos");
 		ImGui::Text("camera position: %f %f %f", frameInfo.camera.getPosition().x, frameInfo.camera.getPosition().y, frameInfo.camera.getPosition().z);
+		
+		ImGui::SeparatorText("noising queue");
+		ImGui::Text("candidates: %zu ", eveTerrain.noisingCandidates.size()); ImGui::SameLine();
+		ImGui::Text("processing: %zu ", eveTerrain.noisingProcessing.size()); ImGui::SameLine();
+		ImGui::Text("processed: %zu ", eveTerrain.noisingProcessed.size());
+		
+		ImGui::SeparatorText("remeshing queue");
 		ImGui::Text("candidates: %zu ", eveTerrain.remeshingCandidates.size()); ImGui::SameLine();
 		ImGui::Text("processing: %zu ", eveTerrain.remeshingProcessing.size()); ImGui::SameLine();
 		ImGui::Text("processed: %zu ", eveTerrain.remeshingProcessed.size());
 
-		int cubes = 0;
-		for (auto& kv : eveTerrain.chunkMap) {
-			Chunk *chunk = kv.second;
-			cubes += chunk->chunkObjectMap.size();
-		}
-		ImGui::Text("cubes: %i ", cubes);
-		ImGui::Text("triangles: %i ", cubes * 6 * 2);
-		ImGui::Text("points: %i ", cubes * 6 * 2 * 3);
+		ImGui::Separator();
+		ImGui::Text("chunk map: %zu ", eveTerrain.chunkMap.size());
 
 		if (ImGui::CollapsingHeader("Rendering")) {
 			static int renderMode = 0;
@@ -377,7 +378,7 @@ namespace eve
 				EASY_BLOCK("Apply Perlin");
 				for (auto it = eveTerrain.chunkMap.begin(); it != eveTerrain.chunkMap.end();) {
 					Chunk *chunk = it->second;
-					chunk->noise();
+					chunk->noise(chunk->root);
 					vkDeviceWaitIdle(eveDevice.device());
 					eveTerrain.chunkMap.erase(it++);
 					eveTerrain.remeshingProcessed.erase(std::find(eveTerrain.remeshingProcessed.begin(), eveTerrain.remeshingProcessed.end(), chunk));

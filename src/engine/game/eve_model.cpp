@@ -143,6 +143,10 @@ namespace eve
 		}
 	}
 
+	void EveModel::swap() {
+		
+	}
+
 	std::vector<VkVertexInputBindingDescription> EveModel::Vertex::getBindingDescriptions()
 	{
 		std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
@@ -225,5 +229,6 @@ namespace eve
 				indices.push_back(uniqueVertices[vertex]);
 			}
 		}
+		std::cout << std::endl; // (fixme)
 	}
 }

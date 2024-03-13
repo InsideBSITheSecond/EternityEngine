@@ -59,18 +59,23 @@ namespace eve {
 			void bind(VkCommandBuffer commandBuffer);
 			void draw(VkCommandBuffer commandBuffer);
 
+			void swap();
 
 		private:
 			void createVertexBuffers(const std::vector<Vertex> &vertices);
 			void createIndexBuffers(const std::vector<uint32_t> &indices);
 
 			EveDevice &eveDevice;
-			
+
+			bool needSwap = false;
+
+			std::unique_ptr<EveBuffer> stagingVertexBuffer;
 			std::unique_ptr<EveBuffer> vertexBuffer;
 			uint32_t vertexCount;
 
 			bool hasIndexBuffer = false;
 
+			std::unique_ptr<EveBuffer> stagingIndexBuffer;
 			std::unique_ptr<EveBuffer> indexBuffer;
 			uint32_t indexCount;
 	};

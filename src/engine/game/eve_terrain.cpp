@@ -16,10 +16,10 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
-		for (int x = -1; x <= 1; x++) {
-			for (int z = -1; z <= 1; z++) {
+		for (int x = -15; x <= 15; x++) {
+			for (int z = -15; z <= 15; z++) {
 				Chunk *prevY = nullptr;
-				for (int y = -1; y <= 1; y++) {
+				for (int y = -2; y <= 2; y++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
 					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr, nullptr);
@@ -27,12 +27,12 @@ namespace eve {
 					Chunk *chunk = new Chunk(octant, chunkPos, this);
 					octant->container = chunk;
 
-					chunk->noise();
+					//chunk->noise(chunk->root);
 					chunk->id = chunkCount;
 					chunk->isQueued = true;
 					chunk->neighbors[0] = prevY;
-					remeshingCandidates.push_back(chunk);
-
+					//remeshingCandidates.push_back(chunk);
+					noisingCandidates.push_back(chunk);
 					prevY = chunk;
 				}
 			}
@@ -46,21 +46,13 @@ namespace eve {
 		std::cout << "level: " << playerCurrentLevel << std::endl;
 	}
 
-	void EveTerrain::pushIfUnique(std::vector<Chunk*> *list, Chunk *chunk) {
-		auto find = std::find(list->begin(), list->end(), chunk);
-		if (find != list->end()) {
-			list->erase(find);
-		}
-		list->push_back(chunk);
-	}
-
 	void EveTerrain::tick() {
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Terrain Tick");
 
 		if (previousMeshingMode != meshingMode) {
 			previousMeshingMode = meshingMode;
-			pool.meshingMode = meshingMode;
+			meshingPool.meshingMode = meshingMode;
 			for (auto& kv : chunkMap) {
 				Chunk *chunk = kv.second;
 				remeshingCandidates.push_back(chunk);
@@ -69,21 +61,60 @@ namespace eve {
 			chunkMap.clear();
 		}
 
+		int passed = 0;
 		// Mark processed chunks as available for rendering
-		for (Chunk *chunk : remeshingProcessed) {
-			chunk->isQueued = false;
-			chunkMap.emplace(chunk->id, chunk);
-		}
-		remeshingProcessed.clear();
+		{boost::lock_guard<boost::mutex> lock(mutex);
+		for (auto it = remeshingProcessed.begin(); it != remeshingProcessed.end();) {
+			Chunk *chunk = *it;
+
+			passed++;
+			if (*it) {
+				if (chunk->id) {
+					if (chunk->chunkBuilder.vertices.size() > 3) {
+						chunk->chunkModel = std::make_unique<EveModel>(eveDevice, chunk->chunkBuilder);
+						auto object = EveGameObject::createGameObject();
+						object.model = chunk->chunkModel;
+						object.transform.translation = chunk->position;
+						chunk->chunkObjectMap.emplace(object.getId(), std::move(object));
+					}
+					chunkMap.emplace(chunk->id, chunk);
+					chunk->isQueued = false;
+					remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), *it));
+				}
+			}
+		}}
 
 		// Move remeshing candidates in the processing queue
 		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
 			Chunk *chunk = *it;
 			chunk->isQueued = true;
 			chunk->chunkObjectMap.clear();
-			pushIfUnique(&remeshingProcessing, *it);
-			pool.pushChunkToRemeshingQueue(*it);
+			remeshingProcessing.push_back(*it);
+			meshingPool.pushChunkToRemeshingQueue(*it);
 			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
+		}
+
+		for (auto it = noisingProcessed.begin(); it != noisingProcessed.end();) {
+			Chunk *chunk = *it;
+			if (*it) {
+				if (chunk->id) {
+					chunk->isQueued = true;
+					remeshingCandidates.push_back(*it);
+					noisingProcessed.erase(std::find(noisingProcessed.begin(), noisingProcessed.end(), *it));
+				}
+			}
+		}
+
+		for (auto it = noisingCandidates.begin(); it != noisingCandidates.end();) {
+			Chunk *chunk = *it;
+			if (*it) {
+				if (chunk->id) {
+					chunk->isQueued = true;
+					noisingProcessing.push_back(*it);
+					noisingPool.pushChunkToNoisingQueue(*it);
+					noisingCandidates.erase(std::find(noisingCandidates.begin(), noisingCandidates.end(), *it));
+				}
+			}
 		}
 
 		if (shouldReset) {
@@ -278,11 +309,11 @@ namespace eve {
 		// if we are the root node
 		if (node->container->root == node) {
 			vkDeviceWaitIdle(eveDevice.device());
-			boost::lock_guard<boost::mutex> lock(mutex);
+			//boost::lock_guard<boost::mutex> lock(mutex);
 			//remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), node->container));
 			node->container->chunkObjectMap.clear();
 
-			pushIfUnique(&remeshingCandidates, node->container);
+			//pushIfUnique(&remeshingCandidates, node->container);
 		}
 
 		return child;
