@@ -7,19 +7,18 @@
 #include "glm/ext.hpp"
 
 #include <boost/thread/thread.hpp>
+#include <boost/range/join.hpp>
+#include "eve_model.hpp"
 
 namespace eve {
 	static constexpr int MAX_RESOLUTION = 1;
 	static constexpr int CHUNK_SIZE = 16;
 	static constexpr int MAX_THREADS = 16;
 
-	enum FaceColors {
-		RED,
-		GREEN,
-		BLUE,
-		MARK
-	};
-
+	static const std::vector<glm::vec3> RED = {glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 0, 0), glm::vec3(1, 0, 0)};
+	static const std::vector<glm::vec3> GREEN = {glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)};
+	static const std::vector<glm::vec3> BLUE = {glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)};
+	static const std::vector<glm::vec3> MARK = {glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(0, 0, 0)};
 
 	class EveVoxel {
 		public:
@@ -54,6 +53,8 @@ namespace eve {
 			bool isAllSame = false;
 			bool isLeaf = false;
 
+			bool marked = false;
+
 			Chunk *container;
 			Octant *parent;
 
@@ -62,10 +63,17 @@ namespace eve {
 			Octant *getChild(int index) { return octants[index]; }
 			void isContained();
 
+			Octant* transposePathingFromContainerInvDir(Chunk *container, int direction);
+
+			Octant* findTopNeighborFromTop();
+			std::vector<Octant *> getAllBotSideSubOctants();
+
 			std::vector<Octant *> getNeighborsTop();
 			bool isTopExposed();
 
 			void noiseOctant();
+
+			glm::vec3 getChildLocalOffset();
 	};
 
 	class EveTerrain;
@@ -89,6 +97,9 @@ namespace eve {
 			glm::ivec3 position;
 			EveGameObject::Map chunkObjectMap;
 
+			EveModel::Builder chunkBuilder{};
+			std::shared_ptr<EveModel> chunkModel;
+			std::shared_ptr<EveGameObject> chunkObject;
 
 
 			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain): root{r}, position{pos}, eveTerrain{terrain} {
@@ -100,7 +111,7 @@ namespace eve {
 
 			void remesh(Octant *octant);
 
-			void createFace(Octant *octant, FaceColors color);
+			void createFace(Octant *octant, std::vector<glm::vec3> colors);
 			void remesh2(Octant *octant);
 
 			void noise();
