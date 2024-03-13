@@ -2,8 +2,11 @@
 
 #include "../device/eve_device.hpp"
 #include "../utils/eve_buffer.hpp"
+#include "../data/eve_frame_info.hpp"
 #include "../rendering/eve_renderer.hpp"
 #include "../rendering/eve_descriptors.hpp"
+#include "eve_game_object.hpp"
+#include "eve_terrain.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -17,10 +20,9 @@
 #include "../../libs/imgui/imgui_impl_vulkan.h"
 #include "../../libs/imgui/imgui_impl_glfw.h"
 #include "../../libs/implot/implot.h"
-#include "eve_game_object.hpp"
-#include "eve_terrain.hpp"
 
 namespace eve {
+	struct FrameInfo;
 	class EveDebug {
 		public:
 
@@ -49,7 +51,7 @@ namespace eve {
 
 			bool isOpen() const { return open; }
 
-			void update(float frametime, int frameIndex);
+			void update(FrameInfo frameInfo);
 			void draw(VkCommandBuffer commandBuffer);
 
 			void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -65,7 +67,7 @@ namespace eve {
 
 			void drawDemo();
 			void drawPlotDemo();
-			void drawInfo(float frametime, int frameIndex);
+			void drawInfo(FrameInfo frameInfo);
 			void drawControls();
 
 			EveWindow &eveWindow;

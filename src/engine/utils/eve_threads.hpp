@@ -17,7 +17,7 @@
 namespace eve {
 	class EveThreadPool {
 		public:
-			std::size_t MAX_THREADS = 1;
+			std::size_t MAX_THREADS = 12;
 
 			void faketask(std::string msg){
 				boost::this_thread::sleep_for(boost::chrono::milliseconds(rand() % 3000 + 1000));
@@ -65,7 +65,7 @@ namespace eve {
 				threadpool_.join_all();
 			}
 
-			EveTerrainMeshingMode meshingMode = MESHING_OCTANT;
+			EveTerrainMeshingMode meshingMode = MESHING_CHUNK;
 		private:
 			boost::shared_ptr<boost::asio::io_service> io_service_;
 			boost::shared_ptr<boost::asio::io_service::work> work_;

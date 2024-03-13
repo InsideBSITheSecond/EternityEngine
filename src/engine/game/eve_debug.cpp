@@ -238,7 +238,7 @@ namespace eve
 		//ImGui_ImplVulkan_CreateFontsTexture();
 	}
 
-	void EveDebug::update(float frametime, int frameIndex) {
+	void EveDebug::update(FrameInfo frameInfo) {
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -246,7 +246,7 @@ namespace eve
 		if (open) {
 			EveDebug::drawControls();
 			if (showDemo) EveDebug::drawDemo();
-			if (showInfo) EveDebug::drawInfo(frametime, frameIndex);
+			if (showInfo) EveDebug::drawInfo(frameInfo);
 			if (showPlotDemo) EveDebug::drawPlotDemo();
 		}
 
@@ -269,10 +269,11 @@ namespace eve
 		ImGui::End();
 	}
 
-	void EveDebug::drawInfo(float frametime, int frameIndex) {
+	void EveDebug::drawInfo(FrameInfo frameInfo) {
     	ImGuiIO& io = ImGui::GetIO(); (void)io;
 		
-		ImGui::Begin("Infos");    
+		ImGui::Begin("Infos");
+		ImGui::Text("camera position: %f %f %f", frameInfo.camera.getPosition().x, frameInfo.camera.getPosition().y, frameInfo.camera.getPosition().z);
 		ImGui::Text("candidates: %zu ", eveTerrain.remeshingCandidates.size()); ImGui::SameLine();
 		ImGui::Text("processing: %zu ", eveTerrain.remeshingProcessing.size()); ImGui::SameLine();
 		ImGui::Text("processed: %zu ", eveTerrain.remeshingProcessed.size());
@@ -321,7 +322,7 @@ namespace eve
 			{
 				iofps[values_offset] = io.Framerate;
 				ioft[values_offset] = 1000.0f / io.Framerate;
-				vkft[values_offset] = frametime;
+				vkft[values_offset] = frameInfo.frameTime;
 				values_offset = (values_offset + 1) % IM_ARRAYSIZE(iofps);
 				refresh_time += 1.0f / 60.0f;
 			}
