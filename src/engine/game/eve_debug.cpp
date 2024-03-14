@@ -357,7 +357,7 @@ namespace eve
 
 			ImGui::Checkbox("live slider terrain rebuild", &liveRebuild);
 
-			static glm::ivec2 range = glm::ivec2(0, 64);
+			static glm::ivec2 range = glm::ivec2(-24, 24);
 			ImGui::InputInt("min", &range.x);
 			ImGui::InputInt("max", &range.y);
 			if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), range.x, range.y)) {

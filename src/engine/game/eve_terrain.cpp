@@ -16,10 +16,13 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
-		for (int x = -15; x <= 15; x++) {
-			for (int z = -15; z <= 15; z++) {
-				Chunk *prevY = nullptr;
-				for (int y = -2; y <= 2; y++) {
+		std::vector<Chunk *> EmptyChunks;
+		std::vector<Chunk *> prevX{};
+		std::vector<Chunk *> prevZ{};
+		std::vector<Chunk *> prevY{};
+		for (int x = -1; x <= 1; x++) {
+			for (int z = -1; z <= 1; z++) {
+				for (int y = -1; y <= 1; y++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
 					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr, nullptr);
@@ -30,15 +33,66 @@ namespace eve {
 					//chunk->noise(chunk->root);
 					chunk->id = chunkCount;
 					chunk->isQueued = true;
-					chunk->neighbors[0] = prevY;
+
+					if (prevY.size())
+						chunk->neighbors[0] = prevY.back();
+					else {
+						chunk->neighbors[0] = nullptr;
+					}
+					
 					//remeshingCandidates.push_back(chunk);
-					noisingCandidates.push_back(chunk);
-					prevY = chunk;
+					//noisingCandidates.push_back(chunk);
+					prevY.push_back(chunk);
+				}
+				if (prevZ.size()) {
+					auto itZ = prevZ.end();
+					for (auto itY = prevY.begin(); itY != prevY.end();) {
+						Chunk *chunk = *itY;
+						int size = prevY.size();
+						auto n = (itZ - (size - 1));
+						Chunk *neighbor = *n;
+						chunk->neighbors[4] = neighbor;
+						prevZ.push_back(*itY);
+						prevY.erase(std::find(prevY.begin(), prevY.end(), *itY));
+					}
+				}
+				else {
+					for (auto itY = prevY.begin(); itY != prevY.end();) {
+						Chunk *chunk = *itY;
+						chunk->neighbors[4] = nullptr;
+						prevZ.push_back(*itY);
+						prevY.erase(std::find(prevY.begin(), prevY.end(), *itY));
+					}
+				}
+			}
+			if (prevX.size()) {
+				auto itX = prevX.end();
+				for (auto itZ = prevZ.begin(); itZ != prevZ.end();) {
+					Chunk *chunk = *itZ;
+					int size = prevZ.size();
+					auto n = (itX - (size - 1));
+					Chunk *neighbor = *n;
+					chunk->neighbors[2] = neighbor;
+					prevX.push_back(*itZ);
+					prevZ.erase(std::find(prevZ.begin(), prevZ.end(), *itZ));
+				}
+			}
+			else {
+				for (auto itZ = prevZ.begin(); itZ != prevZ.end();) {
+					Chunk *chunk = *itZ;
+					chunk->neighbors[2] = nullptr;
+					prevX.push_back(*itZ);
+					prevZ.erase(std::find(prevZ.begin(), prevZ.end(), *itZ));
 				}
 			}
 		}
 
-		//root->position = glm::vec3(-ROOT_SIZE, 0, ROOT_SIZE); //del
+		for (auto itX = prevX.begin(); itX != prevX.end();) {
+			Chunk *chunk = *itX;
+			chunk->backTrackNeighbors();
+			prevX.erase(std::find(prevX.begin(), prevX.end(), *itX));
+			noisingCandidates.push_back(chunk);
+		}
 	}
 
 	void EveTerrain::onMouseWheel(GLFWwindow *window, double xoffset, double yoffset) {
@@ -53,36 +107,43 @@ namespace eve {
 		if (previousMeshingMode != meshingMode) {
 			previousMeshingMode = meshingMode;
 			meshingPool.meshingMode = meshingMode;
+			vkDeviceWaitIdle(eveDevice.device());
 			for (auto& kv : chunkMap) {
 				Chunk *chunk = kv.second;
+				chunk->chunkObjectMap.clear();
 				remeshingCandidates.push_back(chunk);
 			}
-			vkDeviceWaitIdle(eveDevice.device());
 			chunkMap.clear();
 		}
 
 		int passed = 0;
 		// Mark processed chunks as available for rendering
-		{boost::lock_guard<boost::mutex> lock(mutex);
-		for (auto it = remeshingProcessed.begin(); it != remeshingProcessed.end();) {
-			Chunk *chunk = *it;
+		{
+			boost::lock_guard<boost::mutex> lock(mutex);
+			auto it = remeshingProcessed.begin();
+			for (;it != remeshingProcessed.end();) {
+				Chunk *chunk = *it;
 
-			passed++;
-			if (*it) {
-				if (chunk->id) {
-					if (chunk->chunkBuilder.vertices.size() > 3) {
-						chunk->chunkModel = std::make_unique<EveModel>(eveDevice, chunk->chunkBuilder);
-						auto object = EveGameObject::createGameObject();
-						object.model = chunk->chunkModel;
-						object.transform.translation = chunk->position;
-						chunk->chunkObjectMap.emplace(object.getId(), std::move(object));
+				passed++;
+				if (chunk) {
+					if (chunk->id) {
+						if (chunk->chunkBuilder.vertices.size()) {
+							if (chunk->root->position == glm::vec3(-16, -16, -16)) {
+								std::cout << "uwu";
+							}
+							chunk->chunkModel = std::make_unique<EveModel>(eveDevice, chunk->chunkBuilder);
+							auto object = EveGameObject::createGameObject();
+							object.model = chunk->chunkModel;
+							object.transform.translation = chunk->position;
+							chunk->chunkObjectMap.emplace(object.getId(), std::move(object));
+						}
+						chunkMap.emplace(chunk->id, chunk);
+						chunk->isQueued = false;
+						remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), *it));
 					}
-					chunkMap.emplace(chunk->id, chunk);
-					chunk->isQueued = false;
-					remeshingProcessed.erase(std::find(remeshingProcessed.begin(), remeshingProcessed.end(), *it));
 				}
 			}
-		}}
+		}
 
 		// Move remeshing candidates in the processing queue
 		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {

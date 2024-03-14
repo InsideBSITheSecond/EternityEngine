@@ -3,8 +3,11 @@
 #include "eve_game_object.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <boost/thread/thread.hpp>
 #include <boost/range/join.hpp>
@@ -19,20 +22,22 @@ namespace eve {
 	static const std::vector<glm::vec3> GREEN = {glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0)};
 	static const std::vector<glm::vec3> BLUE = {glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1), glm::vec3(0, 0, 1)};
 	static const std::vector<glm::vec3> MARK = {glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, 1), glm::vec3(0, 0, 0)};
+	static const std::vector<glm::vec3> WHITE = {glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1), glm::vec3(1, 1, 1)};
 
 	struct OctantSide{
 		int direction;
-		int start;
-		int step;
+		int neighborDirection;
+		int members[4];
 	};
 
 	class OctantSides{
-		OctantSide Top = {4, 0, 1};
-		OctantSide Down = {4, 4, 1};
-		OctantSide Left = {2, 0, 2};
-		OctantSide Right = {2, 2, 2};
-		OctantSide Near = {1, 0, 2};
-		OctantSide Far = {1, 1, 2};
+		public:
+			static constexpr OctantSide Top{4, 0, {0, 1, 2, 3}};
+			static constexpr OctantSide Down{-4, 1, {4, 5, 6, 7}};
+			static constexpr OctantSide Left{2, 2, {0, 1, 4, 5}};
+			static constexpr OctantSide Right{-2, 3, {2, 3, 6, 7}};
+			static constexpr OctantSide Near{1, 4, {0, 2, 4, 6}};
+			static constexpr OctantSide Far{-1, 5, {1, 3, 5, 7}};
 	};
 
 	class EveVoxel {
@@ -69,6 +74,7 @@ namespace eve {
 			bool isLeaf = false;
 
 			bool marked = false;
+			bool forceRender = false;
 
 			Chunk *container;
 			Octant *parent;
@@ -80,10 +86,10 @@ namespace eve {
 
 			Octant* transposePathingFromContainerInvDir(Chunk *container, int direction);
 
-			Octant* findTopNeighborFromTop();
-			std::vector<Octant *> getAllBotSideSubOctants();
+			Octant* findNeighborFromEdge(const OctantSide side);
+			std::vector<Octant *> getAllSubOctants(const OctantSide side);
 
-			std::vector<Octant *> getNeighborsTop();
+			std::vector<Octant *> getNeighbors(const OctantSide side);
 			bool isTopExposed();
 
 			void noiseOctant(Octant *octant);
@@ -130,8 +136,13 @@ namespace eve {
 
 			void remesh(Octant *octant);
 
-			void createFace(Octant *octant, std::vector<glm::vec3> colors);
+			void createFace(Octant *octant, std::vector<glm::vec3> colors, const OctantSide side);
 			void remesh2(Octant *octant);
+
+			void backTrackNeighborTD(Chunk *n);
+			void backTrackNeighborLR(Chunk *n);
+			void backTrackNeighborNF(Chunk *n);
+			void backTrackNeighbors();
 
 			void noise(Octant *octant);
 			EveTerrain *eveTerrain;

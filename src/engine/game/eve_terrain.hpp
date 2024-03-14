@@ -95,8 +95,8 @@ namespace eve {
 
 			bool shouldReset = false;
 		private:
-			EveThreadPool noisingPool{4};
-			EveThreadPool meshingPool{2};
+			EveThreadPool noisingPool{6};
+			EveThreadPool meshingPool{6};
 			EveTerrainMeshingMode previousMeshingMode = MESHING_CHUNK;
 	};
 }
