@@ -46,7 +46,7 @@ namespace eve {
 				if (meshingMode == MESHING_OCTANT)
 					io_service_->post(boost::bind(&Chunk::remesh, chunk, chunk->root));
 				if (meshingMode == MESHING_CHUNK)
-					io_service_->post(boost::bind(&Chunk::remesh2, chunk, chunk->root));
+					io_service_->post(boost::bind(&Chunk::remesh2, chunk, chunk));
 			}
 
 			void pushChunkToNoisingQueue(Chunk *chunk) {

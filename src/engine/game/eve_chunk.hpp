@@ -38,6 +38,22 @@ namespace eve {
 			static constexpr OctantSide Right{-2, 3, {2, 3, 6, 7}};
 			static constexpr OctantSide Near{1, 4, {0, 2, 4, 6}};
 			static constexpr OctantSide Far{-1, 5, {1, 3, 5, 7}};
+
+
+			static const OctantSide reverseSide(const OctantSide side) {
+				if (side.direction == Top.direction)
+					return Down;
+				if (side.direction == Down.direction)
+					return Top;
+				if (side.direction == Left.direction)
+					return Right;
+				if (side.direction == Right.direction)
+					return Left;
+				if (side.direction == Near.direction)
+					return Far;
+				if (side.direction == Far.direction)
+					return Near;
+			};
 	};
 
 	class EveVoxel {
@@ -82,9 +98,9 @@ namespace eve {
 			Octant(glm::vec3 position, int w, Chunk *containerChunk, Octant *parentOctant);
 			
 			Octant *getChild(int index) { return octants[index]; }
-			void isContained();
+			EveVoxel *getFirstFoundVoxel(Octant *octant);
 
-			Octant* transposePathingFromContainerInvDir(Chunk *container, int direction);
+			Octant* transposePathingFromContainerInvDir(const OctantSide side);
 
 			Octant* findNeighborFromEdge(const OctantSide side);
 			std::vector<Octant *> getAllSubOctants(const OctantSide side);
@@ -137,7 +153,8 @@ namespace eve {
 			void remesh(Octant *octant);
 
 			void createFace(Octant *octant, std::vector<glm::vec3> colors, const OctantSide side);
-			void remesh2(Octant *octant);
+			void remesh2rec(Octant *octant, bool rec = true);
+			void remesh2(Chunk *chunk);
 
 			void backTrackNeighborTD(Chunk *n);
 			void backTrackNeighborLR(Chunk *n);

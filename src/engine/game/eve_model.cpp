@@ -24,7 +24,7 @@ namespace std
 		size_t operator()(eve::EveModel::Vertex const &vertex) const
 		{
 			size_t seed = 0;
-			eve::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
+			eve::hash_combine(seed, vertex.position, vertex.color, vertex.normal, vertex.uv);
 			return seed;
 		}
 	};

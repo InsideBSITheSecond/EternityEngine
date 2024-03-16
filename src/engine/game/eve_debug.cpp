@@ -22,7 +22,7 @@ namespace std
 		size_t operator()(eve::EveDebug::Vertex const &vertex) const
 		{
 			size_t seed = 0;
-			eve::hashCombine(seed, vertex.position, vertex.uv, vertex.color);
+			eve::hash_combine(seed, vertex.position, vertex.uv, vertex.color);
 			return seed;
 		}
 	};
@@ -351,39 +351,48 @@ namespace eve
 		}
 		
 		if (ImGui::CollapsingHeader("GameObjects")) {
+			if (ImGui::CollapsingHeader("Voxel Edit")) {
+				static glm::ivec3 pos = glm::ivec3(0);
+				static bool liveRebuild = true;
 
-			static glm::ivec3 pos = glm::ivec3(0);
-			static bool liveRebuild = true;
+				ImGui::Checkbox("live slider terrain rebuild", &liveRebuild);
 
-			ImGui::Checkbox("live slider terrain rebuild", &liveRebuild);
-
-			static glm::ivec2 range = glm::ivec2(-24, 24);
-			ImGui::InputInt("min", &range.x);
-			ImGui::InputInt("max", &range.y);
-			if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), range.x, range.y)) {
-				if (liveRebuild){
+				static glm::ivec2 range = glm::ivec2(-24, 24);
+				ImGui::InputInt("min", &range.x);
+				ImGui::InputInt("max", &range.y);
+				if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), range.x, range.y)) {
+					if (liveRebuild){
+						eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
+						//eveTerrain.needRebuild = true;
+					}
+				}
+				if (ImGui::Button("change terrain at slider position")){
 					eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
 					//eveTerrain.needRebuild = true;
 				}
 			}
-			if (ImGui::Button("change terrain at slider position")){
-				eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
-				//eveTerrain.needRebuild = true;
-			}			
-			if (ImGui::Button("reset terrain")){
-				eveTerrain.reset();
-			}
-			if (ImGui::Button("apply perlin")){
-				EASY_FUNCTION(profiler::colors::Magenta);
-				EASY_BLOCK("Apply Perlin");
-				for (auto it = eveTerrain.chunkMap.begin(); it != eveTerrain.chunkMap.end();) {
-					Chunk *chunk = it->second;
-					chunk->noise(chunk->root);
-					vkDeviceWaitIdle(eveDevice.device());
-					eveTerrain.chunkMap.erase(it++);
-					eveTerrain.remeshingProcessed.erase(std::find(eveTerrain.remeshingProcessed.begin(), eveTerrain.remeshingProcessed.end(), chunk));
-					eveTerrain.remeshingCandidates.push_back(chunk);
+			if (ImGui::CollapsingHeader("Terrain Properties")) {
+				if (ImGui::Button("reset terrain")){
+					eveTerrain.reset();
+				} ImGui::SameLine();
+
+				if (ImGui::Button("remesh")){
+					eveTerrain.remesh();
 				}
+
+
+				ImGui::Text("Chunks to generate:");
+				ImGui::InputInt2("x", glm::value_ptr(frameInfo.terrain.xRange));
+				ImGui::InputInt2("y", glm::value_ptr(frameInfo.terrain.yRange));
+				ImGui::InputInt2("z", glm::value_ptr(frameInfo.terrain.zRange));
+
+				ImGui::SeparatorText("Sides to remesh");
+				ImGui::Checkbox("top", &frameInfo.terrain.sidesToRemesh[0]); ImGui::SameLine();
+				ImGui::Checkbox("left", &frameInfo.terrain.sidesToRemesh[2]); ImGui::SameLine();
+				ImGui::Checkbox("near", &frameInfo.terrain.sidesToRemesh[4]);
+				ImGui::Checkbox("down", &frameInfo.terrain.sidesToRemesh[1]); ImGui::SameLine();
+				ImGui::Checkbox("right", &frameInfo.terrain.sidesToRemesh[3]); ImGui::SameLine();
+				ImGui::Checkbox("far", &frameInfo.terrain.sidesToRemesh[5]);
 			}
 			
 			/*for (auto& kv : chunkMap)

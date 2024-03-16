@@ -11,6 +11,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
+#include "glm/gtx/hash.hpp"
 
 #include <iostream>
 #include <memory>
@@ -41,7 +42,9 @@ namespace eve {
 			void onMouseWheel(GLFWwindow *window, double xoffset, double yoffset);
 
 			void init();
-			void reset();
+
+			void reset() { shouldReset_ = true; };
+			void remesh() { shouldRemesh_ = true; };
 
 			void createNewVoxel(std::string name, bool value);
 
@@ -62,6 +65,11 @@ namespace eve {
 			//std::vector<Chunk> refinementCandidates;
 			//std::vector<Chunk> refinementProcessed;
 
+			glm::ivec2 xRange = glm::ivec2(-5, 5);
+			glm::ivec2 yRange = glm::ivec2(-1, 1);
+			glm::ivec2 zRange = glm::ivec2(-5, 5);
+
+			bool sidesToRemesh[6] = {true, true, true, true, true, true};
 			boost::mutex mutex;
 			std::vector<Chunk*> remeshingCandidates;
 			std::vector<Chunk*> remeshingProcessing;
@@ -93,10 +101,11 @@ namespace eve {
 
 			int playerCurrentLevel = 0;
 
-			bool shouldReset = false;
 		private:
-			EveThreadPool noisingPool{6};
-			EveThreadPool meshingPool{6};
-			EveTerrainMeshingMode previousMeshingMode = MESHING_CHUNK;
+			EveThreadPool noisingPool{24};
+			EveThreadPool meshingPool{12};
+			
+			bool shouldReset_ = false;
+			bool shouldRemesh_ = false;
 	};
 }

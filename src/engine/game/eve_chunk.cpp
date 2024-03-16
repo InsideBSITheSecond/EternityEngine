@@ -53,11 +53,10 @@ namespace eve {
 				octant->octants[i]->noiseOctant(octant->octants[i]);
 				octant->octants[i]->si = i;
 			}
-		}
 
-		if (!octant->isLeaf) {
 			EveVoxel *sample = octant->octants[0]->voxel;
-			for (int i = 1; i < 8; i++) {
+			octant->isAllSame = true;
+			for (int i = 0; i < 8; i++) {
 				if (!(octant->octants[i]->voxel == sample)) {
 					octant->isAllSame = false;
 				}
@@ -83,6 +82,10 @@ namespace eve {
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Chunk noise");
 
+		if (position == glm::ivec3(-64, -16, -32) && octant == root) {
+			octant->marked = true;
+		}
+
 		int childWidth = root->width / 2;
 		for (int i = 0; i < 8; i++) {
 			if (!octant->octants[i])
@@ -90,25 +93,26 @@ namespace eve {
 			octant->octants[i]->noiseOctant(octant->octants[i]);
 			octant->octants[i]->si = i; // this is just for qol
 		}
-		EveVoxel *sample = octant->octants[0]->voxel;
-		for (int i = 1; i < 8; i++) {
-			if (!(octant->octants[i]->voxel == sample)) {
+
+		octant->isAllSame = true;
+		for (int i = 0; i < 8; i++) {
+			if (!octant->octants[i]->isAllSame) {
 				octant->isAllSame = false;
 			}
 		}
-
+		
 		if (octant->isAllSame)
-			octant->voxel = sample;
+			octant->voxel = octant->octants[0]->voxel;
 
 
 		EASY_BLOCK("Push Noised Chunk");
-		boost::lock_guard<boost::mutex> lock2(eveTerrain->mutex);
 
 		eveTerrain->noisingProcessing.erase(
 			std::find(eveTerrain->noisingProcessing.begin(),
 			eveTerrain->noisingProcessing.end(),
 			octant->container));
 
+		boost::lock_guard<boost::mutex> lock2(eveTerrain->mutex);
 		eveTerrain->noisingProcessed.push_back(octant->container);
 
 		std::cout << "Finished a chunk noising" << glm::to_string(octant->container->position) << " " << glm::to_string(octant->container->countTracker) << std::endl;
@@ -145,16 +149,25 @@ namespace eve {
 				eveTerrain->remeshingProcessing.erase(std::find(eveTerrain->remeshingProcessing.begin(), eveTerrain->remeshingProcessing.end(), this));
 				eveTerrain->remeshingProcessed.push_back(this);
 				std::string pos = glm::to_string(this->position);
-				std::cout << "Finished a chunk remeshing" << pos << std::endl;
+				std::cout << "Finished chunk id:" << id << " remeshing" << pos << std::endl;
 			}
 		}
 	}
 
-	void Octant::isContained() {
-
+	EveVoxel *Octant::getFirstFoundVoxel(Octant *octant) {
+		for (int i = 0; i < 7; i++) {
+			if (octant->octants[i]) {
+				if (octant->octants[i]->voxel) {
+					return octant->octants[i]->voxel;
+				}
+				else {
+					return getFirstFoundVoxel(octant->octants[i]);
+				}
+			}
+		}
 	}
 
-	Octant *Octant::transposePathingFromContainerInvDir(Chunk *container, int direction) {
+	Octant *Octant::transposePathingFromContainerInvDir(const OctantSide side) {
 		std::vector<int> path {};
 		Octant *iterator = this;
 
@@ -163,72 +176,62 @@ namespace eve {
 			iterator = iterator->parent;
 		}
 
-		if (position == glm::vec3(-39.5, -21.5, -21.5))
-			std::cout << "h";
-
-		iterator = container->root;
+		iterator = container->neighbors[side.neighborDirection]->root;
 		for (int index : path) {
-			if (!iterator->octants[index]) {
+			if (!iterator->octants[index + side.direction]) {
 				std::cout << "error";
 				return nullptr;
 			}
-			iterator = iterator->octants[index];
+			iterator = iterator->octants[index + side.direction];
 		}
 		return iterator;
 	}
 
 	Octant *Octant::findNeighborFromEdge(const OctantSide side){
-		if (parent) {
-			if (std::find(std::begin(side.members), std::end(side.members), parent->si) != std::end(side.members)) { // top side
-				Octant *neighbor = parent->findNeighborFromEdge(side);
-				if (neighbor) {
-					if (neighbor->position.y == (position.y - width / 2) - (neighbor->width / 2)) {
-						return neighbor->octants[si + side.direction];
+
+		if (si == -1) {
+			if (container->neighbors[side.neighborDirection]) {
+				return transposePathingFromContainerInvDir(side); // this may be the issue since we could need a reversed direction
+			}
+			else {
+				return nullptr;
+			}
+		}
+
+		if (std::find(std::begin(side.members), std::end(side.members), si) != std::end(side.members)) { // top side
+			if (parent) {
+				Octant *iterator = parent->findNeighborFromEdge(side);
+				if (iterator) {
+					if (iterator->isAllSame) {
+						return iterator;
+					}
+					else {
+						return iterator->octants[si + side.direction];
 					}
 				}
-				if (container->neighbors[side.neighborDirection]) {
-					return transposePathingFromContainerInvDir(container->neighbors[side.neighborDirection], side.direction); // this may be the issue since we could need a reversed direction
-				}
-				
-			}
-			else if (std::find(std::begin(side.members), std::end(side.members), parent->si) == std::end(side.members)) { // bot side
-				if (!container->neighbors[side.neighborDirection]) {
+				else {
+					//std::cout << "(fixme)::findNeighborFromEdge" << std::endl;
 					return nullptr;
-				}
-				
-				if (container->neighbors[side.neighborDirection]) {
-					return transposePathingFromContainerInvDir(container->neighbors[side.neighborDirection], side.direction); // this may be the issue since we could need a reversed direction
 				}
 			}
 		}
-		/*else {
-			if (!container->neighbors[0])
-				return nullptr;
-			return container->neighbors[0]->root->octants[si + 4];
-		}*/
+		else if (std::find(std::begin(side.members), std::end(side.members), si) == std::end(side.members)) { // bot side
+			return parent->octants[si - side.direction];
+		}
+
+		//std::cout << "(fixme)::findNeighborFromEdge" << std::endl;
 		return nullptr;
 	}
 
 	std::vector<Octant *> Octant::getAllSubOctants(const OctantSide side) {
 		std::vector<Octant *> list {};
-
-		if (!isAllSame) {
-			//for (int i : side.members) {  dirty fix
-			for (int i : OctantSides::Down.members) {
-				if (octants[i]) {
-					if (octants[i]->isLeaf) {
-						list.push_back(octants[i]);
-					}
-					else {
-						std::vector<Octant *> subOcts = octants[i]->getAllSubOctants(OctantSides::Down);
-						for (Octant *sub : subOcts) {
-							list.push_back(sub);
-						}
-					}
-				}
-				else {
-					list.push_back(this);
-					return list;
+		int i = 0;
+		
+		if (!isAllSame && !isLeaf) {
+			for (int i : side.members) {
+				std::vector<Octant *> subOcts = octants[i]->getAllSubOctants(side);
+				for (Octant *sub : subOcts) {
+					list.push_back(sub);
 				}
 			}
 		}
@@ -251,7 +254,7 @@ namespace eve {
 
 				// smaller than us
 				if (!neighbor->isAllSame) {
-					neighbors = neighbor->getAllSubOctants(side);
+					neighbors = neighbor->getAllSubOctants(OctantSides::reverseSide(side));
 					if (neighbors.size() > 0) {
 						return neighbors;
 					}
@@ -273,7 +276,7 @@ namespace eve {
 				
 				// smaller than us
 				if (!neighbor->isAllSame) {
-					neighbors = neighbor->getAllSubOctants(side);
+					neighbors = neighbor->getAllSubOctants(OctantSides::reverseSide(side));
 					/*if (width >= 8) {
 						marked = true;
 						for (Octant *n : neighbors) {
@@ -292,13 +295,13 @@ namespace eve {
 					return std::vector<Octant *> {neighbor};
 			}
 		}
-		else if (container->neighbors[0]) { // when max size
+		else if (container->neighbors[side.neighborDirection]) { // when max size
 			std::vector<Octant *> neighbors; 
-			Octant *neighbor = container->neighbors[0]->root;
+			Octant *neighbor = container->neighbors[side.neighborDirection]->root;
 
 			// smaller than us
 			if (!neighbor->isAllSame) {
-				neighbors = neighbor->getAllSubOctants(side);
+				neighbors = neighbor->getAllSubOctants(OctantSides::reverseSide(side));
 				if (neighbors.size() > 0) {
 					return neighbors;
 				}
@@ -323,11 +326,11 @@ namespace eve {
 			return glm::vec3(rotationMat * glm::vec4(coord, 1.0));
 		} else if (side.direction == 2) {
 			glm::mat4 rotationMat(1);
-			rotationMat = glm::rotate(rotationMat, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0));
+			rotationMat = glm::rotate(rotationMat, glm::radians(270.f), glm::vec3(0.0, 0.0, 1.0));
 			return glm::vec3(rotationMat * glm::vec4(coord, 1.0));
 		} else if (side.direction == -2) {
 			glm::mat4 rotationMat(1);
-			rotationMat = glm::rotate(rotationMat, glm::radians(270.f), glm::vec3(0.0, 0.0, 1.0));
+			rotationMat = glm::rotate(rotationMat, glm::radians(90.f), glm::vec3(0.0, 0.0, 1.0));
 			return glm::vec3(rotationMat * glm::vec4(coord, 1.0));
 		} else if (side.direction == 1) {
 			glm::mat4 rotationMat(1);
@@ -409,89 +412,111 @@ namespace eve {
 		}
 	}
 
-	void Chunk::remesh2(Octant *octant) {
-		EASY_FUNCTION(profiler::colors::Green100);
-		EASY_BLOCK("Remesh 2");
+	void Chunk::remesh2rec(Octant *octant, bool rec) {
+		EASY_BLOCK("Remesh 2 Recursive");
 
-		if (octant->position == glm::vec3(-16, -16, -16)) {
-			std::cout << "uwu";
+		if (!octant->isAllSame) {
+			if (rec) {
+				EASY_BLOCK("Recursion");
+				for (Octant *oct : octant->octants) {
+					if (oct)
+						remesh2rec(oct);
+				}
+				EASY_END_BLOCK;
+			}
 		}
+		
 
-		std::vector<OctantSide> sidesToCheck = {OctantSides::Top /*, OctantSides::Left, OctantSides::Far*/};
-		if (octant) {
-			if (octant->isAllSame || octant->isLeaf || octant->forceRender) {
-				EASY_BLOCK("Worth considering for render");
+		std::vector<OctantSide> sidesToCheck;
 
-				for (const OctantSide side : sidesToCheck) {
-					std::vector<Octant *> neighbors = octant->getNeighbors(side);
+		if (eveTerrain->sidesToRemesh[0])
+			sidesToCheck.push_back(OctantSides::Top);
+		if (eveTerrain->sidesToRemesh[1])
+			sidesToCheck.push_back(OctantSides::Down);
+		if (eveTerrain->sidesToRemesh[2])
+			sidesToCheck.push_back(OctantSides::Left);
+		if (eveTerrain->sidesToRemesh[3])
+			sidesToCheck.push_back(OctantSides::Right);
+		if (eveTerrain->sidesToRemesh[4])
+			sidesToCheck.push_back(OctantSides::Near);
+		if (eveTerrain->sidesToRemesh[5])
+			sidesToCheck.push_back(OctantSides::Far);
 
-					if (neighbors.size() == 1) { // same size
-						if ((neighbors.front()->voxel == eveTerrain->voxelMap[0] &&
-							octant->voxel != eveTerrain->voxelMap[0]) || octant->forceRender) {
+		if (octant->isAllSame || octant->isLeaf || octant->forceRender) {
+			EASY_BLOCK("Worth considering for render");
+
+			for (const OctantSide side : sidesToCheck) {
+
+				std::vector<Octant *> neighbors = octant->getNeighbors(side);
+
+				if (neighbors.size() == 1) { // same size
+					if ((neighbors.front()->voxel == eveTerrain->voxelMap[0] &&
+						octant->voxel != eveTerrain->voxelMap[0]) || octant->forceRender) {
+						if (!octant->marked) {
+							createFace(octant, WHITE, side);
+						}
+						else {createFace(octant, MARK, side);}
+					}
+				}
+				/*else if (neighbors.size() == 0) { // top or down level
+					if (octant->voxel != eveTerrain->voxelMap[0] || octant->forceRender) {
+						if (octant->container->neighbors[side.neighborDirection]) {
+							if (octant->container->neighbors[side.neighborDirection]->root->voxel == eveTerrain->voxelMap[0]) {
+								if (!octant->marked) {
+									createFace(octant, WHITE, side);
+								}
+								else {createFace(octant, MARK, side);}
+							}
+						} else {
+							//if (!neighbors[side.neighborDirection]) {
+								if (!octant->marked) {
+									createFace(octant, WHITE, side);
+								}
+								else {createFace(octant, MARK, side);}
+							//}
+						}
+					}
+				}*/
+				else if (neighbors.size() > 1) { 
+					bool allSolid = true;
+					for (Octant* oct : neighbors) {
+						if (oct->voxel == eveTerrain->voxelMap[0]) {
+							allSolid = false;
+						}
+					}
+					if (!allSolid || octant->forceRender) {
+						if (octant->voxel != eveTerrain->voxelMap[0] || octant->forceRender) {
 							if (!octant->marked) {
-								createFace(octant, BLUE, side);
+								createFace(octant, WHITE, side);
 							}
 							else {createFace(octant, MARK, side);}
 						}
 					}
-					else if (neighbors.size() == 0) { // top or down level
-						if (octant->voxel != eveTerrain->voxelMap[0] || octant->forceRender) {
-							if (octant->container->neighbors[0]) {
-								if (octant->container->neighbors[0]->root->voxel == eveTerrain->voxelMap[0]) {
-									if (!octant->marked) {
-										createFace(octant, GREEN, side);
-									}
-									else {createFace(octant, MARK, side);}
-								}
-							} else {
-								if (!octant->marked) {
-									createFace(octant, GREEN, side);
-								}
-								else {createFace(octant, MARK, side);}
-							}
-						}
-					}
-					else if (neighbors.size() > 1) { 
-						bool allSolid = true;
-						for (Octant* oct : neighbors) {
-							if (oct->voxel == eveTerrain->voxelMap[0]) {
-								allSolid = false;
-							}
-						}
-						if (!allSolid || octant->forceRender) {
-							if (octant->voxel != eveTerrain->voxelMap[0] || octant->forceRender) {
-								if (!octant->marked) {
-									createFace(octant, RED, side);
-								}
-								else {createFace(octant, MARK, side);}
-							}
-						}
-					}
 				}
-			}
-			else
-			{
-				EASY_BLOCK("Recursion");
-				for (Octant *oct : octant->octants) {
-					remesh2(oct);
-				}
-			}
-
-			if (octant->container->root == octant) {
-				EASY_BLOCK("Push chunk object");
-				boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
-				boost::lock_guard<boost::mutex> lock2(mutex);
-				EveTerrain *eveTerrain = octant->container->eveTerrain;
-
-				eveTerrain->remeshingProcessing.erase(
-					std::find(eveTerrain->remeshingProcessing.begin(),
-					eveTerrain->remeshingProcessing.end(),
-					this));
-
-				eveTerrain->remeshingProcessed.push_back(this);
-				std::cout << "Finished a chunk remeshing " << glm::to_string(this->position) << " vertices: " << octant->container->chunkBuilder.vertices.size() << std::endl;
 			}
 		}
+	}
+
+	void Chunk::remesh2(Chunk *chunk) {
+		EASY_BLOCK("Remesh V2");
+		EASY_FUNCTION(profiler::colors::Green100);
+		remesh2rec(chunk->root);
+
+		EASY_BLOCK("Push chunk object");
+		boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
+		boost::lock_guard<boost::mutex> lock2(mutex);
+		EveTerrain *eveTerrain = chunk->eveTerrain;
+
+		eveTerrain->remeshingProcessing.erase(
+			std::find(eveTerrain->remeshingProcessing.begin(),
+			eveTerrain->remeshingProcessing.end(),
+			this));
+		
+		eveTerrain->remeshingProcessed.push_back(this);
+		std::cout << "Finished chunk id:" << id 
+			<< " remeshing " << glm::to_string(this->position) 
+			<< " vertices: " << chunkBuilder.vertices.size() 
+			<< std::endl;
 	}
 
 	void Chunk::backTrackNeighborTD(Chunk *n) {

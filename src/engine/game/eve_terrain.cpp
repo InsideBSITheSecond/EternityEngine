@@ -1,4 +1,6 @@
 #include "eve_terrain.hpp"
+#include "../utils/eve_utils.hpp"
+#include <utility>
 
 namespace eve {
 
@@ -16,82 +18,74 @@ namespace eve {
 	}
 
 	void EveTerrain::init() {
-		std::vector<Chunk *> EmptyChunks;
-		std::vector<Chunk *> prevX{};
-		std::vector<Chunk *> prevZ{};
-		std::vector<Chunk *> prevY{};
-		for (int x = -1; x <= 1; x++) {
-			for (int z = -1; z <= 1; z++) {
-				for (int y = -1; y <= 1; y++) {
+		std::unordered_map<glm::ivec3, Chunk*> generated{};
+
+		Chunk *lastChunk;
+
+		for (int x = xRange.x; x <= xRange.y; x++) {
+			for (int y = yRange.x; y <= yRange.y; y++) {
+				for (int z = zRange.x; z <= zRange.y; z++) {
 					chunkCount += 1;
 					glm::ivec3 chunkPos = glm::ivec3(x * CHUNK_SIZE, y * CHUNK_SIZE, z * CHUNK_SIZE);
 					Octant *octant = new Octant(chunkPos, CHUNK_SIZE, nullptr, nullptr);
 					octant->voxel = voxelMap[1];
-					Chunk *chunk = new Chunk(octant, chunkPos, this);
-					octant->container = chunk;
+					lastChunk = new Chunk(octant, chunkPos, this);
+					octant->container = lastChunk;
+					lastChunk->id = chunkCount;
 
-					//chunk->noise(chunk->root);
-					chunk->id = chunkCount;
-					chunk->isQueued = true;
-
-					if (prevY.size())
-						chunk->neighbors[0] = prevY.back();
-					else {
-						chunk->neighbors[0] = nullptr;
-					}
-					
-					//remeshingCandidates.push_back(chunk);
-					//noisingCandidates.push_back(chunk);
-					prevY.push_back(chunk);
-				}
-				if (prevZ.size()) {
-					auto itZ = prevZ.end();
-					for (auto itY = prevY.begin(); itY != prevY.end();) {
-						Chunk *chunk = *itY;
-						int size = prevY.size();
-						auto n = (itZ - (size - 1));
-						Chunk *neighbor = *n;
-						chunk->neighbors[4] = neighbor;
-						prevZ.push_back(*itY);
-						prevY.erase(std::find(prevY.begin(), prevY.end(), *itY));
-					}
-				}
-				else {
-					for (auto itY = prevY.begin(); itY != prevY.end();) {
-						Chunk *chunk = *itY;
-						chunk->neighbors[4] = nullptr;
-						prevZ.push_back(*itY);
-						prevY.erase(std::find(prevY.begin(), prevY.end(), *itY));
-					}
-				}
-			}
-			if (prevX.size()) {
-				auto itX = prevX.end();
-				for (auto itZ = prevZ.begin(); itZ != prevZ.end();) {
-					Chunk *chunk = *itZ;
-					int size = prevZ.size();
-					auto n = (itX - (size - 1));
-					Chunk *neighbor = *n;
-					chunk->neighbors[2] = neighbor;
-					prevX.push_back(*itZ);
-					prevZ.erase(std::find(prevZ.begin(), prevZ.end(), *itZ));
-				}
-			}
-			else {
-				for (auto itZ = prevZ.begin(); itZ != prevZ.end();) {
-					Chunk *chunk = *itZ;
-					chunk->neighbors[2] = nullptr;
-					prevX.push_back(*itZ);
-					prevZ.erase(std::find(prevZ.begin(), prevZ.end(), *itZ));
+					generated.emplace(glm::ivec3(x, y, z), lastChunk);
 				}
 			}
 		}
 
-		for (auto itX = prevX.begin(); itX != prevX.end();) {
-			Chunk *chunk = *itX;
-			chunk->backTrackNeighbors();
-			prevX.erase(std::find(prevX.begin(), prevX.end(), *itX));
-			noisingCandidates.push_back(chunk);
+		for (int x = xRange.x; x <= xRange.y; x++) {
+			for (int y = yRange.x; y <= yRange.y; y++) {
+				for (int z = zRange.x; z <= zRange.y; z++) {
+					glm::ivec3 vec;
+					auto s = generated.find(glm::ivec3(x, y, z));
+					Chunk *self = s->second;
+					
+					vec = glm::ivec3(x, y - 1, z);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[0] = n->second;
+					}
+
+					vec = glm::ivec3(x, y + 1, z);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[1] = n->second;
+					}
+
+					vec = glm::ivec3(x - 1, y, z);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[2] = n->second;
+					}
+
+					vec = glm::ivec3(x + 1, y, z);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[3] = n->second;
+					}
+
+					vec = glm::ivec3(x, y, z - 1);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[4] = n->second;
+					}
+
+					vec = glm::ivec3(x, y, z + 1);
+					if (generated.find(vec) != generated.end()) {
+						auto n = generated.find(vec);
+						self->neighbors[5] = n->second;
+					}
+
+
+					self->isQueued = true;
+					noisingCandidates.push_back(self);
+				}
+			}
 		}
 	}
 
@@ -103,18 +97,6 @@ namespace eve {
 	void EveTerrain::tick() {
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Terrain Tick");
-
-		if (previousMeshingMode != meshingMode) {
-			previousMeshingMode = meshingMode;
-			meshingPool.meshingMode = meshingMode;
-			vkDeviceWaitIdle(eveDevice.device());
-			for (auto& kv : chunkMap) {
-				Chunk *chunk = kv.second;
-				chunk->chunkObjectMap.clear();
-				remeshingCandidates.push_back(chunk);
-			}
-			chunkMap.clear();
-		}
 
 		int passed = 0;
 		// Mark processed chunks as available for rendering
@@ -146,22 +128,29 @@ namespace eve {
 		}
 
 		// Move remeshing candidates in the processing queue
-		for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
-			Chunk *chunk = *it;
-			chunk->isQueued = true;
-			chunk->chunkObjectMap.clear();
-			remeshingProcessing.push_back(*it);
-			meshingPool.pushChunkToRemeshingQueue(*it);
-			remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
+		{
+			boost::lock_guard<boost::mutex> lock(mutex);
+			for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
+				Chunk *chunk = *it;
+				chunk->isQueued = true;
+				chunk->chunkObjectMap.clear();
+				chunk->chunkModel.reset();
+				remeshingProcessing.push_back(*it);
+				meshingPool.pushChunkToRemeshingQueue(*it);
+				remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
+			}
 		}
 
-		for (auto it = noisingProcessed.begin(); it != noisingProcessed.end();) {
-			Chunk *chunk = *it;
-			if (*it) {
-				if (chunk->id) {
-					chunk->isQueued = true;
-					remeshingCandidates.push_back(*it);
-					noisingProcessed.erase(std::find(noisingProcessed.begin(), noisingProcessed.end(), *it));
+		{
+			boost::lock_guard<boost::mutex> lock(mutex);
+			for (auto it = noisingProcessed.begin(); it != noisingProcessed.end();) {
+				Chunk *chunk = *it;
+				if (*it) {
+					if (chunk->id) {
+						chunk->isQueued = true;
+						remeshingCandidates.push_back(*it);
+						noisingProcessed.erase(std::find(noisingProcessed.begin(), noisingProcessed.end(), *it));
+					}
 				}
 			}
 		}
@@ -178,13 +167,28 @@ namespace eve {
 			}
 		}
 
-		if (shouldReset) {
-			shouldReset = false;
+		if (shouldReset_) {
+			maxHeight = floor(float(yRange.x * CHUNK_SIZE) - float(CHUNK_SIZE / 2));
+			minHeight = floor(float(yRange.y * CHUNK_SIZE) + float(CHUNK_SIZE / 2));
+			shouldReset_ = false;
 			remeshingCandidates.clear();
 			remeshingProcessing.clear();
 			remeshingProcessed.clear();
 			chunkMap.clear();
 			init();
+		}
+
+		if (shouldRemesh_) {
+			shouldRemesh_ = false;
+			remeshingCandidates.clear();
+			remeshingProcessing.clear();
+			remeshingProcessed.clear();
+			meshingPool.meshingMode = meshingMode;
+			for (auto kv : chunkMap) {
+				Chunk *chunk = kv.second;
+				chunk->isQueued = true;
+				remeshingCandidates.push_back(chunk);
+			}
 		}
 	}
 
@@ -194,10 +198,6 @@ namespace eve {
 			if (octant->isAllSame || octant->isLeaf)
 		}
 	}*/
-
-	void EveTerrain::reset() {
-		shouldReset = true;
-	}
 
 	void fillOctantWithVoxel(Octant *node, int depth, EveVoxel *voxel) {
 		if (node->isLeaf || node->isAllSame) {
