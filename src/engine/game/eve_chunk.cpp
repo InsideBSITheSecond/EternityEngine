@@ -168,6 +168,7 @@ namespace eve {
 	}
 
 	Octant *Octant::transposePathingFromContainerInvDir(const OctantSide side) {
+		EASY_FUNCTION(profiler::colors::Orange300);
 		std::vector<int> path {};
 		Octant *iterator = this;
 
@@ -188,7 +189,7 @@ namespace eve {
 	}
 
 	Octant *Octant::findNeighborFromEdge(const OctantSide side){
-
+		EASY_FUNCTION(profiler::colors::Orange600);
 		if (si == -1) {
 			if (container->neighbors[side.neighborDirection]) {
 				return transposePathingFromContainerInvDir(side); // this may be the issue since we could need a reversed direction
@@ -224,6 +225,7 @@ namespace eve {
 	}
 
 	std::vector<Octant *> Octant::getAllSubOctants(const OctantSide side) {
+		EASY_FUNCTION(profiler::colors::Orange900);
 		std::vector<Octant *> list {};
 		int i = 0;
 		
@@ -242,6 +244,7 @@ namespace eve {
 	}
 
 	std::vector<Octant *> Octant::getNeighbors(const OctantSide side) {
+		EASY_FUNCTION(profiler::colors::Blue200);
 		if (parent) {	
 			if (std::find(std::begin(side.members), std::end(side.members), si) != std::end(side.members)) { // top side of the octant
 				std::vector<Octant *> neighbors;
@@ -363,6 +366,7 @@ namespace eve {
 
 	void Chunk::createFace(Octant *octant, std::vector<glm::vec3> colors, const OctantSide side) {
 		boost::lock_guard<boost::mutex> lock(mutex);
+		EASY_FUNCTION(profiler::colors::Red200);
 
 		// old seperated objects method
 		/*auto quad = EveGameObject::createGameObject();
@@ -413,11 +417,8 @@ namespace eve {
 	}
 
 	void Chunk::remesh2rec(Octant *octant, bool rec) {
-		EASY_BLOCK("Remesh 2 Recursive");
-
 		if (!octant->isAllSame) {
 			if (rec) {
-				EASY_BLOCK("Recursion");
 				for (Octant *oct : octant->octants) {
 					if (oct)
 						remesh2rec(oct);
@@ -499,7 +500,7 @@ namespace eve {
 
 	void Chunk::remesh2(Chunk *chunk) {
 		EASY_BLOCK("Remesh V2");
-		EASY_FUNCTION(profiler::colors::Green100);
+		EASY_FUNCTION(profiler::colors::Blue100);
 		remesh2rec(chunk->root);
 
 		EASY_BLOCK("Push chunk object");
