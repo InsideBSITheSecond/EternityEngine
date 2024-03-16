@@ -192,7 +192,7 @@ namespace eve {
 		EASY_FUNCTION(profiler::colors::Orange600);
 		if (si == -1) {
 			if (container->neighbors[side.neighborDirection]) {
-				return transposePathingFromContainerInvDir(side); // this may be the issue since we could need a reversed direction
+				return transposePathingFromContainerInvDir(side);
 			}
 			else {
 				return nullptr;
@@ -211,7 +211,6 @@ namespace eve {
 					}
 				}
 				else {
-					//std::cout << "(fixme)::findNeighborFromEdge" << std::endl;
 					return nullptr;
 				}
 			}
@@ -219,8 +218,6 @@ namespace eve {
 		else if (std::find(std::begin(side.members), std::end(side.members), si) == std::end(side.members)) { // bot side
 			return parent->octants[si - side.direction];
 		}
-
-		//std::cout << "(fixme)::findNeighborFromEdge" << std::endl;
 		return nullptr;
 	}
 
@@ -280,14 +277,6 @@ namespace eve {
 				// smaller than us
 				if (!neighbor->isAllSame) {
 					neighbors = neighbor->getAllSubOctants(OctantSides::reverseSide(side));
-					/*if (width >= 8) {
-						marked = true;
-						for (Octant *n : neighbors) {
-							n->forceRender = true;
-							n->marked = true;
-							n->container->remesh2(n);
-						}
-					}*/
 					if (neighbors.size() > 0) {
 						return neighbors;
 					}
@@ -368,26 +357,7 @@ namespace eve {
 		boost::lock_guard<boost::mutex> lock(mutex);
 		EASY_FUNCTION(profiler::colors::Red200);
 
-		// old seperated objects method
-		/*auto quad = EveGameObject::createGameObject();
-		if (color == RED)
-			quad.model = eveTerrain->eveQuadR;
-		if (color == GREEN)
-			quad.model = eveTerrain->eveQuadG;
-		if (color == BLUE)
-			quad.model = eveTerrain->eveQuadB;
-		if (color == MARK)
-			quad.model = eveTerrain->eveQuad;
-		
-		quad.transform.translation = octant->position;
-		quad.transform.translation.y -= octant->width;
-		quad.transform.scale = (glm::vec3(octant->width)) / 2;
-		chunkObjectMap.emplace(quad.getId(), std::move(quad));*/
-
-
-		// new combined buffer method
 		glm::vec3 offset = octant->getChildLocalOffset();
-		//offset.y -= octant->width;
 		std::vector<EveModel::Vertex> quadVertices = {
 			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
 			{glm::vec3(1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
@@ -395,9 +365,6 @@ namespace eve {
 			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0.000000000000000001)},
 		};
 		std::vector<uint32_t> quadIndices = {0, 1, 2, 1, 0, 3};
-
-		if (octant->position == glm::vec3(-16, -16, -16))
-			std::cout << "uwu";
 
 		int i = 0;
 		for (EveModel::Vertex vertex : quadVertices) {
@@ -518,28 +485,5 @@ namespace eve {
 			<< " remeshing " << glm::to_string(this->position) 
 			<< " vertices: " << chunkBuilder.vertices.size() 
 			<< std::endl;
-	}
-
-	void Chunk::backTrackNeighborTD(Chunk *n) {
-		neighbors[1] = n;
-	}
-
-	void Chunk::backTrackNeighborLR(Chunk *n) {
-		neighbors[3] = n;
-	}
-
-	void Chunk::backTrackNeighborNF(Chunk *n) {
-		neighbors[5] = n;
-	}
-
-	void Chunk::backTrackNeighbors() {
-		if (neighbors[0])
-			neighbors[0]->backTrackNeighborTD(this);
-		
-		if (neighbors[2])
-			neighbors[2]->backTrackNeighborLR(this);
-
-		if (neighbors[4])
-			neighbors[4]->backTrackNeighborNF(this);
 	}
 }

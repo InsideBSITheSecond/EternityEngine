@@ -156,11 +156,6 @@ namespace eve {
 			void remesh2rec(Octant *octant, bool rec = true);
 			void remesh2(Chunk *chunk);
 
-			void backTrackNeighborTD(Chunk *n);
-			void backTrackNeighborLR(Chunk *n);
-			void backTrackNeighborNF(Chunk *n);
-			void backTrackNeighbors();
-
 			void noise(Octant *octant);
 			EveTerrain *eveTerrain;
 		private:
