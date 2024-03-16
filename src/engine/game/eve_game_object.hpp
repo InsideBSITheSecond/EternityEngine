@@ -28,6 +28,28 @@ namespace eve
 		float lightIntensity = 1.0f;
 	};
 
+	struct GravityComponent {
+		glm::vec3 direction;
+		float force;
+		bool grounded;
+	};
+
+	struct CollisionComponent {
+		
+	};
+
+	struct EntityComponent {
+		
+	};
+
+	struct AiComponent {
+		
+	};
+
+	struct InventoryComponent {
+		
+	};
+
 	class EveGameObject
 	{
 	public:
@@ -57,6 +79,9 @@ namespace eve
 
 		// Optional pointer components
 		std::shared_ptr<EveModel> model{};
+		std::shared_ptr<CollisionComponent> collisionComponent = nullptr;
+		std::shared_ptr<EntityComponent> entityComponent = nullptr;
+		std::shared_ptr<AiComponent> aiComponent = nullptr;
 		std::unique_ptr<PointLightComponent> pointLightComponent = nullptr;
 		std::unique_ptr<DirectionalLightComponent> directionalLightComponent = nullptr;
 	private:
