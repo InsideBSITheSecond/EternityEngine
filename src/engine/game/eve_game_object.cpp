@@ -68,6 +68,15 @@ namespace eve {
 		return gameObj;
 	}
 
+	EveGameObject EveGameObject::makeDirectionalLight(float intensity, float radius, glm::vec3 color) {
+		EveGameObject gameObj = EveGameObject::createGameObject();
+		gameObj.color = color;
+		gameObj.transform.scale.x = radius;
+		gameObj.directionalLightComponent = std::make_unique<DirectionalLightComponent>();
+		gameObj.directionalLightComponent->lightIntensity = intensity;
+		return gameObj;
+	}
+
 	EveGameObject::~EveGameObject() {
 		
 	}

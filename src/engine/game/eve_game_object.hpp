@@ -24,6 +24,10 @@ namespace eve
 		float lightIntensity = 1.0f;
 	};
 
+	struct DirectionalLightComponent {
+		float lightIntensity = 1.0f;
+	};
+
 	class EveGameObject
 	{
 	public:
@@ -37,6 +41,7 @@ namespace eve
 		}
 
 		static EveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+		static EveGameObject makeDirectionalLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 
 		~EveGameObject();
 
@@ -53,6 +58,7 @@ namespace eve
 		// Optional pointer components
 		std::shared_ptr<EveModel> model{};
 		std::unique_ptr<PointLightComponent> pointLightComponent = nullptr;
+		std::unique_ptr<DirectionalLightComponent> directionalLightComponent = nullptr;
 	private:
 		EveGameObject(id_t objId) : id{objId} {}
 

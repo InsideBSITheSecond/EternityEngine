@@ -29,6 +29,7 @@ namespace eve {
 			SimpleRenderSystem(const SimpleRenderSystem&) = delete;
 			SimpleRenderSystem &operator=(const SimpleRenderSystem&) = delete;
 
+			void update(FrameInfo &frameInfo, GlobalUbo &ubo);
 			void renderGameObjects(FrameInfo &frameInfo);
 
 		private:

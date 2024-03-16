@@ -100,11 +100,6 @@ namespace eve
 			float aspect = eveRenderer.getAspectRatio();
 			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
 
-			/*if (eveTerrain.needRebuild) {
-				eveTerrain.needRebuild = false;
-				eveTerrain.rebuildTerrainMeshThreaded();
-			}*/
-
 			eveTerrain.tick();
 
 			if (auto commandBuffer = eveRenderer.beginFrame())
@@ -128,6 +123,7 @@ namespace eve
 				ubo.projectionMatrix = camera.getProjection();
 				ubo.viewMatrix = camera.getView();
 				ubo.inverseViewMatrix = camera.getInverseView();
+				simpleRenderSystem.update(frameInfo, ubo);
 				pointLightSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
 				uboBuffers[frameIndex]->flush();
@@ -197,15 +193,19 @@ namespace eve
 			{1.f, 1.f, 1.f}  //
 		};
 
+		auto sun = EveGameObject::makeDirectionalLight(0.5f);
+		sun.transform.rotation = {1.f, -3.f, -1.f};
+		gameObjects.emplace(sun.getId(), std::move(sun));
+
 		for (int i = 0; i < lightColors.size(); i++) {
-			auto pointLight = EveGameObject::makePointLight(0.2f);
+			auto pointLight = EveGameObject::makePointLight(0.5f);
 			pointLight.color = lightColors[i];
 			auto rotateLight = glm::rotate(
 				glm::mat4(1.f),
 				(i * glm::two_pi<float>()) / lightColors.size(),
 				{0.f, -1.f, 0.f});
-			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-1.f, -1.f, -1.f, 1.f));
-			pointLight.transform.translation.y = -20;
+			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-5.f, -5.f, -5.f, 1.f));
+			pointLight.transform.translation.y = -16;
 			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
 		}
 

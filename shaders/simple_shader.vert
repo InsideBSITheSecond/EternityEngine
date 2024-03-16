@@ -19,6 +19,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 	mat4 viewMatrix;
 	mat4 inverseViewMatrix;
 	vec4 ambientLightColor;
+	vec3 directionalLight;
 	PointLight pointLights[10];
 	int numLights;
 } ubo;
@@ -29,7 +30,7 @@ layout(push_constant) uniform Push {
 } push;
 
 const float AMBIENT = 0.05;
-const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0));
+const vec3 DIRECTION_TO_LIGHT = normalize(vec3(1.0, -3.0, -1.0)); //sun
 
 // MATRIX MULTIPLICATION ORDER MATTERS
 void main() {
@@ -37,7 +38,7 @@ void main() {
 	gl_Position = ubo.projectionMatrix * ubo.viewMatrix * positionWorld;
 	fragNormalWorld = normalize(mat3(push.normalMatrix) * normal);
 	fragPosWorld = positionWorld.xyz;
-	float lightIntensity = max(dot(fragNormalWorld, DIRECTION_TO_LIGHT), 0);
+	float lightIntensity = max(dot(fragNormalWorld, normalize(ubo.directionalLight)), 0);
 	
 	fragColor = lightIntensity * color;
 }

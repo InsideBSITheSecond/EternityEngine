@@ -21,6 +21,7 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 	mat4 viewMatrix;
 	mat4 inverseViewMatrix;
 	vec4 ambientLightColor;
+	vec3 directionalLight;
 	PointLight pointLights[10];
 	int numLights;
 } ubo;

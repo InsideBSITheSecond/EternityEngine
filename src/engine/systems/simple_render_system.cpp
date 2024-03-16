@@ -85,6 +85,25 @@ namespace eve
 			pipelineConfig);
 	}
 
+	void SimpleRenderSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo){
+		auto rotateLight = glm::rotate(
+			glm::mat4(1.f),
+			frameInfo.frameTime,
+			{-1.f, -1.f, 1.f});
+			
+		for (auto& kv: frameInfo.gameObjects) {
+			auto& obj = kv.second;
+			if (obj.directionalLightComponent == nullptr) continue;
+
+			// update light position
+			obj.transform.rotation = glm::vec3(rotateLight * glm::vec4(obj.transform.rotation, 1.f));
+			//std::cout << glm::to_string(obj.transform.rotation) << std::endl;
+			// copy lights to ubo
+			ubo.directionalLight = glm::vec3(obj.transform.rotation);
+			//ubo.directionalLight.color = glm::vec4(obj.color, obj.pointLightComponent->lightIntensity);
+		}
+	}
+
 	void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo)
 	{
 		EASY_FUNCTION(profiler::colors::Blue);
