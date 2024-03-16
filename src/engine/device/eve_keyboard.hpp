@@ -2,6 +2,12 @@
 
 #include "../game/eve_game_object.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/gtc/matrix_transform.hpp>
+#include "glm/ext.hpp"
+
 namespace eve
 {
 	class EveKeyboardController
@@ -23,10 +29,18 @@ namespace eve
 			int toggleDebug = GLFW_KEY_F1;
 		};
 
+		void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
+		void cursorPosCallback(GLFWwindow *window, double xpos, double ypos);
 		void moveInPlaneXZ(GLFWwindow *window, float dt, EveGameObject &gameObject);
 
 		KeyMappings keys{};
 		float moveSpeed{30.f};
 		float lookSpeed{1.5f};
+
+		glm::vec2 lastCursorPos = glm::vec2(0);
+
+		int leftMouseButton = 0;
+		int rightMouseButton = 0;
+		int middleMouseButton = 0;
 	};
 }

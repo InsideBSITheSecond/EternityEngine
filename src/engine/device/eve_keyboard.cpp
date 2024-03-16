@@ -1,18 +1,56 @@
 #include "eve_keyboard.hpp"
+#include <iostream>
+
+
 
 namespace eve
 {
+	void EveKeyboardController::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
+		if (button == GLFW_MOUSE_BUTTON_1) { // left
+			leftMouseButton = action;
+			return;
+		}
+		if (button == GLFW_MOUSE_BUTTON_2) { //right
+			rightMouseButton = action;
+			return;
+		}
+		if (button == GLFW_MOUSE_BUTTON_3) { //middle
+			middleMouseButton = action;
+			return;
+		}
+		std::cout << button << " " << action << " " << mods << std::endl;
+	}
+
+	void EveKeyboardController::cursorPosCallback(GLFWwindow *window, double xpos, double ypos) {
+		lastCursorPos = glm::vec2(xpos, ypos);
+	}
+
 	void EveKeyboardController::moveInPlaneXZ(GLFWwindow *window, float dt, EveGameObject &gameObject)
 	{
+		static glm::vec2 lastPosUpdate;
 		glm::vec3 rotate{0};
-		if (glfwGetKey(window, keys.lookRight) == GLFW_PRESS)
-			rotate.y += 1.f;
-		if (glfwGetKey(window, keys.lookLeft) == GLFW_PRESS)
-			rotate.y -= 1.f;
-		if (glfwGetKey(window, keys.lookUp) == GLFW_PRESS)
-			rotate.x += 1.f;
-		if (glfwGetKey(window, keys.lookDown) == GLFW_PRESS)
-			rotate.x -= 1.f;
+
+		if (rightMouseButton == GLFW_PRESS) {
+			if (lastCursorPos.x < lastPosUpdate.x)
+				rotate.y -= 1.f;
+			if (lastCursorPos.x > lastPosUpdate.x)
+				rotate.y += 1.f;
+			if (lastCursorPos.y < lastPosUpdate.y)
+				rotate.x += 1.f;
+			if (lastCursorPos.y > lastPosUpdate.y)
+				rotate.x -= 1.f;
+			lastPosUpdate = lastCursorPos;
+		}
+		else {
+			if (glfwGetKey(window, keys.lookRight) == GLFW_PRESS)
+				rotate.y += 1.f;
+			if (glfwGetKey(window, keys.lookLeft) == GLFW_PRESS)
+				rotate.y -= 1.f;
+			if (glfwGetKey(window, keys.lookUp) == GLFW_PRESS)
+				rotate.x += 1.f;
+			if (glfwGetKey(window, keys.lookDown) == GLFW_PRESS)
+				rotate.x -= 1.f;
+		}
 
 		if (glm::dot(rotate, rotate) > std::numeric_limits<float>::epsilon())
 		{

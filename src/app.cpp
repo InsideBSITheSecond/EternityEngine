@@ -44,8 +44,14 @@ namespace eve
 	{
 		std::vector<std::unique_ptr<EveBuffer>> uboBuffers(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
 		
+		auto viewerObject = EveGameObject::createGameObject();
+		EveKeyboardController keyboardController{};
+
 		eveWindow.setMouseWheelCallback(std::bind(&EveTerrain::onMouseWheel, &eveTerrain, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		eveWindow.setKeyboardCallback(std::bind(&EveDebug::key_callback, &debugMenu, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+		eveWindow.setMouseButtonCallback(std::bind(&EveKeyboardController::mouseButtonCallback, &keyboardController, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+		eveWindow.setCursorPosCallback(std::bind(&EveKeyboardController::cursorPosCallback, &keyboardController, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
 
 		for (int i = 0; i < uboBuffers.size(); i++) {
 			uboBuffers[i] = std::make_unique<EveBuffer>(
@@ -78,10 +84,6 @@ namespace eve
 
 		EveCamera camera{};
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
-		
-
-		auto viewerObject = EveGameObject::createGameObject();
-		EveKeyboardController keyboardController{};
 
 		auto currentTime = std::chrono::high_resolution_clock::now();
 

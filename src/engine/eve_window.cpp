@@ -22,6 +22,8 @@ namespace eve {
 		glfwSetFramebufferSizeCallback(window, framebufferResizedCallback);
 		glfwSetScrollCallback(window, mouseWheelCallback);
 		glfwSetKeyCallback(window, keyboardCallback);
+		glfwSetMouseButtonCallback(window, mouseButtonCallback);
+		glfwSetCursorPosCallback(window, cursorPosCallback);
 	}
 
 	void EveWindow::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
@@ -45,5 +47,15 @@ namespace eve {
 	void EveWindow::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		auto eveWindow = reinterpret_cast<EveWindow *>(glfwGetWindowUserPointer(window));
 		eveWindow->keyboardCallback_(window, key, scancode, action, mods);
+	}
+
+	void EveWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+		auto eveWindow = reinterpret_cast<EveWindow *>(glfwGetWindowUserPointer(window));
+		eveWindow->mouseButtonCallback_(window, button, action, mods);
+	}
+
+	void EveWindow::cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+		auto eveWindow = reinterpret_cast<EveWindow *>(glfwGetWindowUserPointer(window));
+		eveWindow->cursorPosCallback_(window, xpos, ypos);
 	}
 }
