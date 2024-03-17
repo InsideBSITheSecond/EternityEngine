@@ -165,6 +165,7 @@ namespace eve {
 				}
 			}
 		}
+		return nullptr; // warning supress (fixme)
 	}
 
 	Octant *Octant::transposePathingFromContainerInvDir(const OctantSide side) {

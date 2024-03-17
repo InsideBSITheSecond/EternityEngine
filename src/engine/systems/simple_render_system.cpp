@@ -96,7 +96,7 @@ namespace eve
 			if (obj.directionalLightComponent == nullptr) continue;
 
 			// update light position
-			obj.transform.rotation = glm::vec3(rotateLight * glm::vec4(obj.transform.rotation, 1.f));
+			//obj.transform.rotation = glm::vec3(rotateLight * glm::vec4(obj.transform.rotation, 1.f));
 			//std::cout << glm::to_string(obj.transform.rotation) << std::endl;
 			// copy lights to ubo
 			ubo.directionalLight = glm::vec3(obj.transform.rotation);

@@ -1,9 +1,15 @@
-[submodule "3rdparty/FastNoise2"]
-	path = 3rdparty/FastNoise2
-	url = https://github.com/Auburn/FastNoise2.git
-[submodule "src/libs/easy_profiler"]
-	path = src/libs/easy_profiler
-	url = https://github.com/yse/easy_profiler.git
 [submodule "src/libs/PhysX"]
 	path = src/libs/PhysX
 	url = https://github.com/NVIDIA-Omniverse/PhysX.git
+[submodule "src/libs/imgui"]
+	path = src/libs/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "src/libs/easy_profiler"]
+	path = src/libs/easy_profiler
+	url = https://github.com/yse/easy_profiler.git
+[submodule "src/libs/implot"]
+	path = src/libs/implot
+	url = https://github.com/epezent/implot.git
+[submodule "src/libs/tinyobjloader"]
+	path = src/libs/tinyobjloader
+	url = https://github.com/tinyobjloader/tinyobjloader.git

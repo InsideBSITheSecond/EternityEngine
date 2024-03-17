@@ -3,13 +3,40 @@ set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
 find_package(Vulkan REQUIRED)
-find_package(easy_profiler REQUIRED)
 
-message("CMAKE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
+# EVE
+file(GLOB_RECURSE
+SOURCE_FILES
+RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    CONFIGURE_DEPENDS
 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/**.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/**.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/app.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/app.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/eve.cpp
+)
+message("SOURCE_FILES ${SOURCE_FILES}")
+
+add_executable(${PROJECT_NAME}
+	${SOURCE_FILES}
+)
+
+# Compile flags - you can customize these
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui)
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui/backends)
+
+# Set the output directory for the compiled .o files
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# SHADERS
 set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/shaders")
-set(INCL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/libs/**/**")
+
 file(GLOB SHADERS "${SHADERS_IN_DIR}/**.vert" "${SHADERS_IN_DIR}/**.frag")
 file(MAKE_DIRECTORY ${SHADERS_OUT_DIR})
 foreach(SHADER ${SHADERS})
@@ -23,21 +50,9 @@ foreach(SHADER ${SHADERS})
 		VERBATIM)
 endforeach()
 add_custom_target(build_shaders DEPENDS ${SHADER_OUT_NAMES})
-
-file(GLOB_RECURSE
-SOURCE_FILES
-RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} 
-    CONFIGURE_DEPENDS
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/**.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/**.hpp
-)
-
-add_executable(${PROJECT_NAME}
-	${SOURCE_FILES}
-)
 add_dependencies(${PROJECT_NAME} build_shaders)
 
+# copy data folders
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_SOURCE_DIR}/models $<TARGET_FILE_DIR:${PROJECT_NAME}>/models)
@@ -45,29 +60,112 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
                        ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
-					   
-# Set the output directory for the compiled .o files
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# Compile flags - you can customize these
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+# Nvidia Physx
+option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/include)
 
-# Specify additional include directories if needed
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/easy_profiler/include)
+if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message("Building snippet in debug configuration")
+    add_compile_definitions(_DEBUG)
+    target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/bin/linux.clang/checked) # This is the path where PhysX libraries are installed
+else()
+    message("Building snippet in release configuration with PhysX ${PHYSX_BUILD_TYPE} configuration")
+    add_compile_definitions(NDEBUG)
+    target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/bin/linux.clang/${PHYSX_BUILD_TYPE}) # This is the path where PhysX libraries are installed
+endif()
 
-# Specify additional libraries if needed
-target_link_libraries(${PROJECT_NAME} -lglfw)
-target_link_libraries(${PROJECT_NAME} -lvulkan)
-target_link_libraries(${PROJECT_NAME} -ldl)
-target_link_libraries(${PROJECT_NAME} -lX11)
-target_link_libraries(${PROJECT_NAME} -lXxf86vm)
-target_link_libraries(${PROJECT_NAME} -lXrandr)
-target_link_libraries(${PROJECT_NAME} -lXi)
-target_link_libraries(${PROJECT_NAME} -lboost_thread)
-target_link_libraries(${PROJECT_NAME} -lboost_system)
-target_link_libraries(${PROJECT_NAME} -lboost_chrono)
-target_link_libraries(${PROJECT_NAME} easy_profiler)
+target_link_libraries(${PROJECT_NAME}
+    PhysXExtensions_static_64
+    PhysX_static_64
+    PhysXPvdSDK_static_64
+    PhysXCommon_static_64
+    PhysXFoundation_static_64
+)
 
-include_directories(${PROJECT_NAME} ${INCL_DIR})
+# ------ IMGUI -------
+set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/imgui)
+add_library(imgui
+    ${IMGUI_PATH}/imgui.cpp
+    ${IMGUI_PATH}/imgui_draw.cpp
+    ${IMGUI_PATH}/imgui_widgets.cpp
+    ${IMGUI_PATH}/imgui_tables.cpp
+    ${IMGUI_PATH}/imgui_demo.cpp
+)
+target_include_directories(imgui
+    PUBLIC
+    $<BUILD_INTERFACE:${IMGUI_PATH}>
+    $<INSTALL_INTERFACE:imgui.h>
+    $<INSTALL_INTERFACE:imgui_internal.h>
+)
+# namespaced alias
+add_library(${PROJECT_NAME}::imgui ALIAS imgui)
+target_link_libraries(${PROJECT_NAME} imgui)
+
+# ------ IMGUI VULKAN -------
+add_library(imgui-vulkan ${IMGUI_PATH}/backends/imgui_impl_vulkan.cpp)
+target_include_directories(imgui-vulkan
+    PUBLIC
+    $<BUILD_INTERFACE:${IMGUI_PATH}/backends>
+    $<INSTALL_INTERFACE:imgui_impl_vulkan.h>
+)
+target_link_libraries(imgui-vulkan
+    imgui
+    vulkan)
+add_library(${PROJECT_NAME}::imgui-vulkan ALIAS imgui-vulkan)
+target_link_libraries(${PROJECT_NAME} imgui-vulkan)
+
+# ------ IMGUI GLFW -------
+add_library(imgui-glfw ${IMGUI_PATH}/backends/imgui_impl_glfw.cpp)
+target_include_directories(imgui-glfw
+    PUBLIC
+    $<BUILD_INTERFACE:${IMGUI_PATH}/backends>
+    $<INSTALL_INTERFACE:imgui_impl_glfw.h>
+)
+target_link_libraries(imgui-glfw
+    imgui
+    glfw)
+add_library(${PROJECT_NAME}::imgui-glfw ALIAS imgui-glfw)
+target_link_libraries(${PROJECT_NAME} imgui-glfw)
+
+# ------ IMGUI IMPLOT -------
+set(IMPLOT ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/implot)
+add_library(implot
+    ${IMPLOT}/implot.cpp
+    ${IMPLOT}/implot_items.cpp
+    ${IMPLOT}/implot_demo.cpp
+)
+target_include_directories(implot
+    PUBLIC
+    $<BUILD_INTERFACE:${IMPLOT_PATH}>
+    $<INSTALL_INTERFACE:implot.h>
+    $<INSTALL_INTERFACE:implot_internal.h>
+)
+target_link_libraries(implot
+    imgui
+	imgui-vulkan
+	imgui-glfw)
+# namespaced alias
+add_library(${PROJECT_NAME}::implot ALIAS implot)
+target_link_libraries(${PROJECT_NAME} implot)
+
+
+
+# need to compile from source ? maybe not
+target_link_libraries(${PROJECT_NAME} glfw)
+target_link_libraries(${PROJECT_NAME} vulkan)
+target_link_libraries(${PROJECT_NAME} boost_thread)
+target_link_libraries(${PROJECT_NAME} boost_system)
+target_link_libraries(${PROJECT_NAME} boost_chrono)
+
+target_link_libraries(${PROJECT_NAME} dl)
+target_link_libraries(${PROJECT_NAME} X11)
+target_link_libraries(${PROJECT_NAME} Xxf86vm)
+target_link_libraries(${PROJECT_NAME} Xi)
+target_link_libraries(${PROJECT_NAME} Xrandr)
+
+
+
+
+
+

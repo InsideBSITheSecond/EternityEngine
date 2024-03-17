@@ -77,6 +77,15 @@ namespace eve {
 		return gameObj;
 	}
 
+	EveGameObject EveGameObject::makeGravityObject(glm::vec3 direction, float force) {
+		EveGameObject gameObj = EveGameObject::createGameObject();
+		gameObj.gravityComponent = std::make_unique<GravityComponent>();
+		gameObj.gravityComponent->direction = direction;
+		gameObj.gravityComponent->force = force;
+		gameObj.gravityComponent->grounded = false;
+		return gameObj;
+	}
+
 	EveGameObject::~EveGameObject() {
 		
 	}

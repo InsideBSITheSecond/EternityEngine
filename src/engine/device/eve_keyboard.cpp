@@ -5,6 +5,15 @@
 
 namespace eve
 {
+	EveKeyboardController::EveKeyboardController(EveWorld *world) : eveWorld{world} {
+
+	};
+
+	EveKeyboardController::~EveKeyboardController() {
+
+	};
+
+
 	void EveKeyboardController::mouseButtonCallback(GLFWwindow *window, int button, int action, int mods) {
 		if (button == GLFW_MOUSE_BUTTON_1) { // left
 			leftMouseButton = action;
@@ -16,6 +25,7 @@ namespace eve
 		}
 		if (button == GLFW_MOUSE_BUTTON_3) { //middle
 			middleMouseButton = action;
+			eveWorld->spawnObject();
 			return;
 		}
 		std::cout << button << " " << action << " " << mods << std::endl;

@@ -52,6 +52,9 @@ namespace eve {
 					return Far;
 				if (side.direction == Far.direction)
 					return Near;
+
+
+				return Top; // suppress warning (fixme)
 			};
 	};
 

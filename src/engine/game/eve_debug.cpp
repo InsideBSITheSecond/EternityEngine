@@ -233,8 +233,9 @@ namespace eve
 		init_info.MinImageCount = 2;
 		init_info.ImageCount = EveSwapChain::MAX_FRAMES_IN_FLIGHT;
 		init_info.CheckVkResultFn = nullptr;
+		init_info.RenderPass = eveRenderer.getSwapChainRenderPass();
 
-		ImGui_ImplVulkan_Init(&init_info, eveRenderer.getSwapChainRenderPass());
+		ImGui_ImplVulkan_Init(&init_info);
 		//ImGui_ImplVulkan_CreateFontsTexture();
 	}
 

@@ -12,6 +12,7 @@
 #include <vector>
 #include <easy/profiler.h>
 #include "engine/game/eve_terrain.hpp"
+#include "engine/game/eve_world.hpp"
 
 namespace eve {
 	class App {
@@ -27,17 +28,12 @@ namespace eve {
 
 			void run();
 		private:
-			void loadGameObjects();
-
 			EveWindow eveWindow{WIDTH, HEIGHT, "Eternity Voxel Engine"};
 			EveDevice eveDevice{eveWindow};
 			EveRenderer eveRenderer{eveWindow, eveDevice};
 
-
 			// note: order of declarations matters
 			std::unique_ptr<EveDescriptorPool> globalPool{};
-			EveGameObject::Map gameObjects;
-			EveTerrain eveTerrain{eveDevice};
-			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
+			EveWorld eveWorld{eveDevice, eveWindow, eveRenderer, globalPool};
 	};
 }

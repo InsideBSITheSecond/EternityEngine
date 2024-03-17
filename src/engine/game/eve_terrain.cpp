@@ -94,7 +94,7 @@ namespace eve {
 		std::cout << "level: " << playerCurrentLevel << std::endl;
 	}
 
-	void EveTerrain::tick() {
+	void EveTerrain::tick(float deltaTime) {
 		EASY_FUNCTION(profiler::colors::Magenta);
 		EASY_BLOCK("Terrain Tick");
 

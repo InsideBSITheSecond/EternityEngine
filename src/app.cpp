@@ -18,8 +18,6 @@
 #include <chrono>
 #include <easy/profiler.h>
 
-#include "libs/imgui/imgui_impl_vulkan.h"
-
 namespace eve
 {
 
@@ -33,7 +31,6 @@ namespace eve
 			.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, EveDebug::DEBUG_POOL_SIZE)
 			.setPoolFlags(VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT)
 			.build();
-		loadGameObjects();
 	}
 
 	App::~App()
@@ -43,15 +40,6 @@ namespace eve
 	void App::run()
 	{
 		std::vector<std::unique_ptr<EveBuffer>> uboBuffers(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
-		
-		auto viewerObject = EveGameObject::createGameObject();
-		EveKeyboardController keyboardController{};
-
-		eveWindow.setMouseWheelCallback(std::bind(&EveTerrain::onMouseWheel, &eveTerrain, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-		eveWindow.setKeyboardCallback(std::bind(&EveDebug::key_callback, &debugMenu, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
-		eveWindow.setMouseButtonCallback(std::bind(&EveKeyboardController::mouseButtonCallback, &keyboardController, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-		eveWindow.setCursorPosCallback(std::bind(&EveKeyboardController::cursorPosCallback, &keyboardController, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
 
 		for (int i = 0; i < uboBuffers.size(); i++) {
 			uboBuffers[i] = std::make_unique<EveBuffer>(
@@ -76,33 +64,25 @@ namespace eve
 				.build(globalDescriptorSets[i]);
 		}
 
-		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout(), eveTerrain};
+		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout(), eveWorld.eveTerrain};
 		PointLightSystem pointLightSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		ImGuiSystem imGuiSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 
-		debugMenu.init();
-
-		EveCamera camera{};
-		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
-
 		auto currentTime = std::chrono::high_resolution_clock::now();
+
+		eveWorld.init();
 
 		while (!eveWindow.shouldClose())
 		{
 			EASY_BLOCK("App Loop");
 			glfwPollEvents();
 
+
 			auto newTime = std::chrono::high_resolution_clock::now();
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
 
-			keyboardController.moveInPlaneXZ(eveWindow.getGLFWwindow(), frameTime, viewerObject);
-			camera.setViewYXZ(viewerObject.transform.translation, viewerObject.transform.rotation);
-
-			float aspect = eveRenderer.getAspectRatio();
-			camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
-
-			eveTerrain.tick();
+			eveWorld.tick(frameTime);
 
 			if (auto commandBuffer = eveRenderer.beginFrame())
 			{
@@ -113,18 +93,18 @@ namespace eve
 					frameIndex,
 					frameTime,
 					commandBuffer,
-					camera,
+					eveWorld.camera,
 					globalDescriptorSets[frameIndex],
-					gameObjects,
-					debugMenu,
-					eveTerrain};
+					eveWorld.gameObjects,
+					eveWorld.debugMenu,
+					eveWorld.eveTerrain};
 
 				// update
 				EASY_BLOCK("Update");
 				GlobalUbo ubo{};
-				ubo.projectionMatrix = camera.getProjection();
-				ubo.viewMatrix = camera.getView();
-				ubo.inverseViewMatrix = camera.getInverseView();
+				ubo.projectionMatrix = eveWorld.camera.getProjection();
+				ubo.viewMatrix = eveWorld.camera.getView();
+				ubo.inverseViewMatrix = eveWorld.camera.getInverseView();
 				simpleRenderSystem.update(frameInfo, ubo);
 				pointLightSystem.update(frameInfo, ubo);
 				uboBuffers[frameIndex]->writeToBuffer(&ubo);
@@ -159,58 +139,5 @@ namespace eve
 		}
 
 		vkDeviceWaitIdle(eveDevice.device());
-	}
-
-	void App::loadGameObjects()
-	{
-		std::shared_ptr<EveModel> eveModel;
-		
-		/*eveModel = EveModel::createModelFromFile(eveDevice, "models/smooth_vase.obj");
-		auto smoothVase = EveGameObject::createGameObject();
-		smoothVase.model = eveModel;
-		smoothVase.transform.translation = {-.5f, .5f, 0.f};
-		smoothVase.transform.scale = {3.f, 1.5f, 3.f};
-		gameObjects.emplace(smoothVase.getId(), std::move(smoothVase));
-
-		eveModel = EveModel::createModelFromFile(eveDevice, "models/flat_vase.obj");
-		auto flatVase = EveGameObject::createGameObject();
-		flatVase.model = eveModel;
-		flatVase.transform.translation = {.5f, .5f, 0.f};
-		flatVase.transform.scale = {3.f, 1.5f, 3.f};
-		gameObjects.emplace(flatVase.getId(), std::move(flatVase));
-
-		eveModel = EveModel::createModelFromFile(eveDevice, "models/quad.obj");
-		auto floor = EveGameObject::createGameObject();
-		floor.model = eveModel;
-		floor.transform.translation = {0.f, .5f, 0.f};
-		floor.transform.scale = {3.f, 1.f, 3.f};
-		gameObjects.emplace(floor.getId(), std::move(floor));*/
-
-		 std::vector<glm::vec3> lightColors{
-			{1.f, .1f, .1f},
-			{.1f, .1f, 1.f},
-			{.1f, 1.f, .1f},
-			{1.f, 1.f, .1f},
-			{.1f, 1.f, 1.f},
-			{1.f, 1.f, 1.f}  //
-		};
-
-		auto sun = EveGameObject::makeDirectionalLight(0.5f);
-		sun.transform.rotation = {1.f, -3.f, -1.f};
-		gameObjects.emplace(sun.getId(), std::move(sun));
-
-		for (int i = 0; i < lightColors.size(); i++) {
-			auto pointLight = EveGameObject::makePointLight(0.5f);
-			pointLight.color = lightColors[i];
-			auto rotateLight = glm::rotate(
-				glm::mat4(1.f),
-				(i * glm::two_pi<float>()) / lightColors.size(),
-				{0.f, -1.f, 0.f});
-			pointLight.transform.translation = glm::vec3(rotateLight *glm::vec4(-5.f, -5.f, -5.f, 1.f));
-			pointLight.transform.translation.y = -16;
-			gameObjects.emplace(pointLight.getId(), std::move(pointLight));
-		}
-
-
 	}
 }

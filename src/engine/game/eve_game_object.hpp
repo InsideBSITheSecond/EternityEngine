@@ -64,6 +64,7 @@ namespace eve
 
 		static EveGameObject makePointLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
 		static EveGameObject makeDirectionalLight(float intensity = 10.f, float radius = 0.1f, glm::vec3 color = glm::vec3(1.f));
+		static EveGameObject makeGravityObject(glm::vec3 direction, float force);
 
 		~EveGameObject();
 
@@ -82,6 +83,7 @@ namespace eve
 		std::shared_ptr<CollisionComponent> collisionComponent = nullptr;
 		std::shared_ptr<EntityComponent> entityComponent = nullptr;
 		std::shared_ptr<AiComponent> aiComponent = nullptr;
+		std::shared_ptr<GravityComponent> gravityComponent = nullptr;
 		std::unique_ptr<PointLightComponent> pointLightComponent = nullptr;
 		std::unique_ptr<DirectionalLightComponent> directionalLightComponent = nullptr;
 	private:

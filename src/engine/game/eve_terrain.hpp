@@ -29,7 +29,7 @@ namespace eve {
 			EveTerrain(EveDevice &device);
 			~EveTerrain();
 
-			void tick();
+			void tick(float deltaTime);
 
 			EveTerrain(const EveTerrain&) = delete;
 			EveTerrain &operator=(const EveTerrain&) = delete;
@@ -102,8 +102,8 @@ namespace eve {
 			int playerCurrentLevel = 0;
 
 		private:
-			EveThreadPool noisingPool{24};
-			EveThreadPool meshingPool{12};
+			EveThreadPool noisingPool{1};
+			EveThreadPool meshingPool{1};
 			
 			bool shouldReset_ = false;
 			bool shouldRemesh_ = false;

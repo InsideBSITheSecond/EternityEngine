@@ -7,12 +7,16 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/gtc/matrix_transform.hpp>
 #include "glm/ext.hpp"
+#include "../game/eve_world.hpp"
 
 namespace eve
 {
+	class EveWorld;
 	class EveKeyboardController
 	{
 	public:
+		EveKeyboardController(EveWorld *world);
+		~EveKeyboardController();
 		struct KeyMappings
 		{
 			int moveLeft = GLFW_KEY_A;
@@ -42,5 +46,10 @@ namespace eve
 		int leftMouseButton = 0;
 		int rightMouseButton = 0;
 		int middleMouseButton = 0;
+
+	private:
+		EveWorld *eveWorld;
 	};
+
+	
 }
