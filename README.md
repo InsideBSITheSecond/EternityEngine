@@ -25,7 +25,7 @@ powered by Vulkan
  - Easy Profiler
 
 ## Build (only tested on linux)
-Dependencies:
+required :
  - cmake
  - vulkan sdk
  - glfw3
