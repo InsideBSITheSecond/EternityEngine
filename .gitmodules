@@ -13,3 +13,6 @@
 [submodule "src/libs/tinyobjloader"]
 	path = src/libs/tinyobjloader
 	url = https://github.com/tinyobjloader/tinyobjloader.git
+[submodule "src/libs/PerlinNoise"]
+	path = src/libs/PerlinNoise
+	url = https://github.com/Reputeless/PerlinNoise.git
