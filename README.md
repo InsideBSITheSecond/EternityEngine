@@ -24,7 +24,7 @@ powered by Vulkan
  - ImGUI + ImPlot
  - Easy Profiler
 
-## Build
+## Build (only tested on linux)
 
 ```
 git clone https://github.com/InsideBSITheSecond/EternityVoxelEngine.git
