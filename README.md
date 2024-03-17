@@ -25,6 +25,11 @@ powered by Vulkan
  - Easy Profiler
 
 ## Build (only tested on linux)
+Dependencies:
+ - cmake
+ - vulkan sdk
+ - glfw3
+ - ??
 
 ```
 git clone https://github.com/InsideBSITheSecond/EternityVoxelEngine.git
