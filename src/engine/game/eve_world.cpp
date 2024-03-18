@@ -20,6 +20,7 @@ namespace eve {
 
 		//physx.createPhysxSimulation(true);
 		//physx.createStack(PxTransform(PxVec3(0,0,stackZ-=10.0f)), 10, 2.0f);
+
 	}
 
 	EveWorld::~EveWorld() {
@@ -37,19 +38,40 @@ namespace eve {
 		camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
 		
 		//physx.stepPhysics();
+
+		jolt.tick(deltaTime);
 	}
 
 	void EveWorld::spawnObject() {
-		// auto newObject = EveGameObject::makeGravityObject(glm::vec3(0, 1, 0), 0.5f);
-		// newObject.transform.translation = camera.getPosition();
-		// newObject.model = eveTerrain.eveCube;
-		// gameObjects.emplace(newObject.getId(), std::move(newObject));
+		auto newObject = EveGameObject::makeGravityObject(glm::vec3(0, 1, 0), 0.5f);
+		newObject.transform.translation = camera.getPosition();
+		newObject.model = eveTerrain.eveCube;
 
-		/*physx.createDynamic(
-			PxTransform(PxVec3(viewerObject.transform.translation.x, viewerObject.transform.translation.y, viewerObject.transform.translation.z)),
-			PxSphereGeometry(3.0f), 
-			PxVec3(viewerObject.transform.rotation.x, viewerObject.transform.rotation.y, viewerObject.transform.rotation.z));*/
-			
+		// Now create a dynamic body to bounce on the floor
+		// Note that this uses the shorthand version of creating and adding a body to the world
+		//BodyCreationSettings sphere_settings(new BoxShape(2.f), RVec3(camera.getPosition().x, -camera.getPosition().y, camera.getPosition().z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+		//newObject.gravityComponent->bodyID = jolt.body_interface->CreateAndAddBody(sphere_settings, EActivation::Activate);
+
+		BoxShapeSettings box_shape_settings(Vec3(1.0f, 1.0f, 1.0f));
+
+		// Create the shape
+		ShapeSettings::ShapeResult box_shape_result = box_shape_settings.Create();
+		ShapeRefC box_shape = box_shape_result.Get(); // We don't expect an error here, but you can check box_shape_result for HasError() / GetError()
+
+		// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
+		BodyCreationSettings box_settings(box_shape, RVec3(camera.getPosition().x, -camera.getPosition().y, camera.getPosition().z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+
+		// Create the actual rigid body
+		newObject.gravityComponent->bodyID = jolt.body_interface->CreateAndAddBody(box_settings, EActivation::Activate); // Note that if we run out of bodies this can return nullptr
+
+		jolt.sphere_id = newObject.gravityComponent->bodyID;
+
+		// Now you can interact with the dynamic body, in this case we're going to give it a velocity.
+		// (note that if we had used CreateBody then we could have set the velocity straight on the body before adding it to the physics system)
+		
+		jolt.body_interface->SetLinearVelocity(newObject.gravityComponent->bodyID, Vec3(0.0f, -5.0f, 0.0f));
+
+		gameObjects.emplace(newObject.getId(), std::move(newObject));
 		std::cout << "Spawned a gravity object" << std::endl;
 	}
 
@@ -57,7 +79,15 @@ namespace eve {
 		for (auto &kv : gameObjects) {
 			EveGameObject &object = kv.second;
 			if (object.gravityComponent) {
-				object.transform.translation.y += 9.f * object.gravityComponent->force * deltaTime;
+				JPH::RVec3 position = jolt.body_interface->GetCenterOfMassPosition(object.gravityComponent->bodyID);
+				object.transform.translation.x = position.GetX();
+				object.transform.translation.y = -position.GetY();
+				object.transform.translation.z = position.GetZ();
+
+				JPH::Quat rotation = jolt.body_interface->GetRotation(object.gravityComponent->bodyID);
+				object.transform.rotation.x = rotation.GetX();
+				object.transform.rotation.y = rotation.GetY();
+				object.transform.rotation.z = rotation.GetZ();
 			}
 		}
 	}

@@ -4,6 +4,9 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/BodyCreationSettings.h>
+
 #include <memory>
 #include <unordered_map>
 
@@ -29,6 +32,7 @@ namespace eve
 	};
 
 	struct GravityComponent {
+		JPH::BodyID bodyID;
 		glm::vec3 direction;
 		float force;
 		bool grounded;

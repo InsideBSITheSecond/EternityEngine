@@ -25,7 +25,8 @@ namespace eve
 		}
 		if (button == GLFW_MOUSE_BUTTON_3) { //middle
 			middleMouseButton = action;
-			eveWorld->spawnObject();
+			if (middleMouseButton == GLFW_RELEASE)
+				eveWorld->spawnObject();
 			return;
 		}
 		std::cout << button << " " << action << " " << mods << std::endl;
