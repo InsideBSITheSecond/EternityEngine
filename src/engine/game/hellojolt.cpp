@@ -208,7 +208,7 @@ public:
 };
 
 // Program entry point
-int main(int argc, char** argv)
+/*int main(int argc, char** argv)
 {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
@@ -361,4 +361,4 @@ int main(int argc, char** argv)
 	Factory::sInstance = nullptr;
 
 	return 0;
-}
+}*/

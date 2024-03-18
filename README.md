@@ -38,7 +38,7 @@ cd EternityVoxelEngine
 git submodule update --init --recursive
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE="Release" ..
-make
+cmake -S ..
+cmake --build . --config Debug --target all --parallel
 ```
  
