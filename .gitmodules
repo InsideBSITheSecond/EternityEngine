@@ -1,6 +1,3 @@
-[submodule "src/libs/PhysX"]
-	path = src/libs/PhysX
-	url = https://github.com/NVIDIA-Omniverse/PhysX.git
 [submodule "src/libs/imgui"]
 	path = src/libs/imgui
 	url = https://github.com/ocornut/imgui.git
@@ -16,9 +13,6 @@
 [submodule "src/libs/PerlinNoise"]
 	path = src/libs/PerlinNoise
 	url = https://github.com/Reputeless/PerlinNoise.git
-[submodule "src/libs/bullet3"]
-	path = src/libs/bullet3
-	url = https://github.com/bulletphysics/bullet3.git
 [submodule "src/libs/JoltPhysics"]
 	path = src/libs/JoltPhysics
 	url = https://github.com/jrouwe/JoltPhysics.git
