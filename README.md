@@ -20,17 +20,18 @@ powered by Vulkan
  - GLFW3
  - Boost
  - PerlinNoise
- - Nvidia PhysX
+ - JoltPhysics
  - ImGUI + ImPlot
  - Easy Profiler
 
 ## Build (only tested on linux)
 required :
  - cmake
- - vulkan sdk
- - glfw3
- - see src/libs/PhysX readme for compile instructions
- - see src/libs/easy_profiler readme for compile instructions
+ - a c++ compiler
+ - common sense
+ - vulkan sdk (in system path)
+ - glfw3 (in system path)
+ - boost (in system path)
 
 ```
 git clone https://github.com/InsideBSITheSecond/EternityVoxelEngine.git
