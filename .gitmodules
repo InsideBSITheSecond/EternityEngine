@@ -16,3 +16,9 @@
 [submodule "src/libs/PerlinNoise"]
 	path = src/libs/PerlinNoise
 	url = https://github.com/Reputeless/PerlinNoise.git
+[submodule "src/libs/bullet3"]
+	path = src/libs/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+[submodule "src/libs/JoltPhysics"]
+	path = src/libs/JoltPhysics
+	url = https://github.com/jrouwe/JoltPhysics.git

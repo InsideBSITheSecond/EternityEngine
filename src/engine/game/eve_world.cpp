@@ -1,7 +1,4 @@
 #include "eve_world.hpp"
-#include <PxShape.h>
-#include <PxMaterial.h>
-#include <PxRigidDynamic.h>
 
 namespace eve {
 
@@ -21,7 +18,8 @@ namespace eve {
 
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
 
-		physx.createPhysxSimulation();
+		//physx.createPhysxSimulation(true);
+		//physx.createStack(PxTransform(PxVec3(0,0,stackZ-=10.0f)), 10, 2.0f);
 	}
 
 	EveWorld::~EveWorld() {
@@ -37,13 +35,21 @@ namespace eve {
 
 		float aspect = eveRenderer.getAspectRatio();
 		camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 1000.f);
+		
+		//physx.stepPhysics();
 	}
 
 	void EveWorld::spawnObject() {
-		auto newObject = EveGameObject::makeGravityObject(glm::vec3(0, 1, 0), 0.5f);
-		newObject.transform.translation = camera.getPosition();
-		newObject.model = eveTerrain.eveCube;
-		gameObjects.emplace(newObject.getId(), std::move(newObject));
+		// auto newObject = EveGameObject::makeGravityObject(glm::vec3(0, 1, 0), 0.5f);
+		// newObject.transform.translation = camera.getPosition();
+		// newObject.model = eveTerrain.eveCube;
+		// gameObjects.emplace(newObject.getId(), std::move(newObject));
+
+		/*physx.createDynamic(
+			PxTransform(PxVec3(viewerObject.transform.translation.x, viewerObject.transform.translation.y, viewerObject.transform.translation.z)),
+			PxSphereGeometry(3.0f), 
+			PxVec3(viewerObject.transform.rotation.x, viewerObject.transform.rotation.y, viewerObject.transform.rotation.z));*/
+			
 		std::cout << "Spawned a gravity object" << std::endl;
 	}
 

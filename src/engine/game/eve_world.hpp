@@ -5,7 +5,7 @@
 #include "../rendering/eve_renderer.hpp"
 #include "../rendering/eve_descriptors.hpp"
 #include "eve_debug.hpp"
-#include "eve_physx.hpp"
+//#include "eve_physx.hpp"
 
 #include <memory>
 
@@ -41,6 +41,6 @@ namespace eve {
 			EveTerrain eveTerrain{eveDevice};
 			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 			EveCamera camera{};
-			EvePhysx physx{};
+			//EvePhysx physx{};
 	};
 }
