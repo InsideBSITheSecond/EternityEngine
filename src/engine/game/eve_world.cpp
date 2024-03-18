@@ -1,6 +1,10 @@
 #include "eve_world.hpp"
+#include <PxShape.h>
+#include <PxMaterial.h>
+#include <PxRigidDynamic.h>
 
 namespace eve {
+
 	EveWorld::EveWorld(EveDevice &device, EveWindow &window, EveRenderer &renderer, std::unique_ptr<EveDescriptorPool> &pool)
 	: eveDevice{device}, eveWindow{window}, eveRenderer{renderer}, globalPool{pool}, viewerObject{EveGameObject::createGameObject()}{
 		loadGameObjects();
@@ -16,6 +20,8 @@ namespace eve {
 		eveWindow.setCursorPosCallback(std::bind(&EveKeyboardController::cursorPosCallback, keyboardController, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 		camera.setViewTarget(glm::vec3(-1.f, -2.f, 2.f), glm::vec3(0.f, 0.f, 2.5f));
+
+		physx.createPhysxSimulation();
 	}
 
 	EveWorld::~EveWorld() {

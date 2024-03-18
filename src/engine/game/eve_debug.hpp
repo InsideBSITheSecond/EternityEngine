@@ -19,7 +19,7 @@
 
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
-#include "../../libs/implot/implot.h"
+#include <implot.h>
 
 namespace eve {
 	struct FrameInfo;

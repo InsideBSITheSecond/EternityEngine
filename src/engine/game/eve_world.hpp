@@ -5,14 +5,13 @@
 #include "../rendering/eve_renderer.hpp"
 #include "../rendering/eve_descriptors.hpp"
 #include "eve_debug.hpp"
-
-#include "PxPhysicsAPI.h"
+#include "eve_physx.hpp"
 
 #include <memory>
 
 namespace eve {
 	class EveKeyboardController;
-	
+
 	class EveWorld {
 		public:
 			EveWorld(EveDevice &device, EveWindow &window, EveRenderer &renderer, std::unique_ptr<EveDescriptorPool> &pool);
@@ -25,9 +24,7 @@ namespace eve {
 			void tick(float deltaTime);
 
 			void applyGravity(float deltaTime);
-
 			void spawnObject();
-
 			void loadGameObjects();
 
 		private:
@@ -44,5 +41,6 @@ namespace eve {
 			EveTerrain eveTerrain{eveDevice};
 			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 			EveCamera camera{};
+			EvePhysx physx{};
 	};
 }

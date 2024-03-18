@@ -25,9 +25,6 @@ add_executable(${PROJECT_NAME}
 # Compile flags - you can customize these
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui/backends)
-
 # Set the output directory for the compiled .o files
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -63,7 +60,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 
 # Nvidia Physx
 option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/include/)
 
 if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
     message("Building snippet in debug configuration")
@@ -81,6 +78,7 @@ target_link_libraries(${PROJECT_NAME}
     PhysXPvdSDK_static_64
     PhysXCommon_static_64
     PhysXFoundation_static_64
+	PhysXGpu_64
 )
 
 # ------ IMGUI -------
@@ -101,6 +99,8 @@ target_include_directories(imgui
 # namespaced alias
 add_library(${PROJECT_NAME}::imgui ALIAS imgui)
 target_link_libraries(${PROJECT_NAME} imgui)
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui)
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui/backends)
 
 # ------ IMGUI VULKAN -------
 add_library(imgui-vulkan ${IMGUI_PATH}/backends/imgui_impl_vulkan.cpp)
@@ -148,8 +148,7 @@ target_link_libraries(implot
 # namespaced alias
 add_library(${PROJECT_NAME}::implot ALIAS implot)
 target_link_libraries(${PROJECT_NAME} implot)
-
-
+target_include_directories(EternityVoxelEngine PRIVATE src/libs/implot)
 
 # need to compile from source ? maybe not
 target_link_libraries(${PROJECT_NAME} glfw)
@@ -157,6 +156,7 @@ target_link_libraries(${PROJECT_NAME} vulkan)
 target_link_libraries(${PROJECT_NAME} boost_thread)
 target_link_libraries(${PROJECT_NAME} boost_system)
 target_link_libraries(${PROJECT_NAME} boost_chrono)
+target_link_libraries(${PROJECT_NAME} cuda)
 
 target_link_libraries(${PROJECT_NAME} dl)
 target_link_libraries(${PROJECT_NAME} X11)

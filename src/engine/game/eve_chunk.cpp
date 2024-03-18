@@ -115,7 +115,7 @@ namespace eve {
 		boost::lock_guard<boost::mutex> lock2(eveTerrain->mutex);
 		eveTerrain->noisingProcessed.push_back(octant->container);
 
-		std::cout << "Finished a chunk noising" << glm::to_string(octant->container->position) << " " << glm::to_string(octant->container->countTracker) << std::endl;
+		//std::cout << "Finished a chunk noising" << glm::to_string(octant->container->position) << " " << glm::to_string(octant->container->countTracker) << std::endl;
 	}
 
 	void Chunk::remesh(Octant *octant) {
@@ -482,9 +482,9 @@ namespace eve {
 			this));
 		
 		eveTerrain->remeshingProcessed.push_back(this);
-		std::cout << "Finished chunk id:" << id 
+		/*std::cout << "Finished chunk id:" << id 
 			<< " remeshing " << glm::to_string(this->position) 
 			<< " vertices: " << chunkBuilder.vertices.size() 
-			<< std::endl;
+			<< std::endl;*/
 	}
 }
