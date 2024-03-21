@@ -1,10 +1,11 @@
 #include "eve_physx.hpp"
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 
 namespace eve {
 
 	EvePhysx::EvePhysx() {
 		initPhysx();
-		createShapes();
+		//createHelloShapes();
 	}
 
 	EvePhysx::~EvePhysx() {
@@ -44,6 +45,7 @@ namespace eve {
 		// Note that this is called from a job so whatever you do here needs to be thread safe.
 		// Registering one is entirely optional.
 		physics_system.SetContactListener(&contact_listener);
+		physics_system.SetGravity(Vec3(0, -9.8f, 0));
 
 		// The main way to interact with the bodies in the physics system is through the body interface. There is a locking and a non-locking
 		// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
@@ -53,7 +55,9 @@ namespace eve {
 		job_system = new JobSystemThreadPool(cMaxPhysicsJobs, cMaxPhysicsBarriers, thread::hardware_concurrency() - 1);
 	}
 
-	void EvePhysx::createShapes() {
+
+
+	void EvePhysx::createHelloShapes() {
 		// Next we can create a rigid body to serve as the floor, we make a large box
 		// Create the settings for the collision volume (the shape).
 		// Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
@@ -87,6 +91,18 @@ namespace eve {
 		physics_system.OptimizeBroadPhase();
 	}
 
+	BodyID EvePhysx::createStaticPlane(glm::vec3 size, glm::vec3 pos, glm::vec3 offset) {
+		BoxShapeSettings floor_shape_settings(Vec3(size.x, size.y, size.z));
+		Ref<Shape> floor_shape = floor_shape_settings.Create().Get();
+
+		RotatedTranslatedShapeSettings translated_floor_shape_settings(Vec3(pos.x, -pos.y, pos.z), Quat::sIdentity(), floor_shape);
+		Ref<Shape> translated_floor_shape = translated_floor_shape_settings.Create().Get();
+		
+		BodyCreationSettings floor_settings(translated_floor_shape, RVec3(offset.x, -offset.y, offset.z), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+		BodyID id = body_interface->CreateAndAddBody(floor_settings, EActivation::DontActivate);
+		return id;
+	}
+
 	void EvePhysx::tick(float deltaTime) {
 		//if (body_interface->IsActive(sphere_id)) {
 			// Output current position and velocity of the sphere
@@ -104,14 +120,14 @@ namespace eve {
 
 	void EvePhysx::destroy() {
 		// Remove the sphere from the physics system. Note that the sphere itself keeps all of its state and can be re-added at any time.
-		body_interface->RemoveBody(sphere_id);
+		/*body_interface->RemoveBody(sphere_id);
 
 		// Destroy the sphere. After this the sphere ID is no longer valid.
 		body_interface->DestroyBody(sphere_id);
 
 		// Remove and destroy the floor
 		body_interface->RemoveBody(floor->GetID());
-		body_interface->DestroyBody(floor->GetID());
+		body_interface->DestroyBody(floor->GetID());*/
 
 		// Unregisters all types with the factory and cleans up the default material
 		UnregisterTypes();

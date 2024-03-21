@@ -23,6 +23,10 @@
 
 namespace eve {
 	struct FrameInfo;
+
+	class EveTerrain;
+	class EveWorld;
+
 	class EveDebug {
 		public:
 

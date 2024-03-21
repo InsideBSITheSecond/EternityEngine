@@ -5,13 +5,14 @@
 #include "../rendering/eve_renderer.hpp"
 #include "../rendering/eve_descriptors.hpp"
 #include "eve_debug.hpp"
-//#include "eve_physx.hpp"
 #include "eve_physx.hpp"
 
 #include <memory>
 
 namespace eve {
 	class EveKeyboardController;
+	class EveDebug;
+	class EveTerrain;
 
 	class EveWorld {
 		public:
@@ -39,9 +40,9 @@ namespace eve {
 
 		public: 
 			EveGameObject::Map gameObjects;
-			EveTerrain eveTerrain{eveDevice};
-			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 			EveCamera camera{};
-			EvePhysx jolt{};
+			EvePhysx physx{};
+			EveTerrain eveTerrain{eveDevice, physx};
+			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
 	};
 }

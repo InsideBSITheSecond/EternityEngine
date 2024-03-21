@@ -354,7 +354,29 @@ namespace eve {
 		return glm::vec3(0);
 	}
 
+	Chunk::Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain): root{r}, position{pos}, eveTerrain{terrain} {
+		for (int i = 0; i < 6; i++)
+			neighbors[i] = nullptr;
+	};
+
+	Chunk::~Chunk(){
+		std::cout << "Destroyed chunk" << std::endl;
+		for (auto it = chunkPhysxObjects.begin(); it != chunkPhysxObjects.end();) {
+			BodyID obj = *it;
+			eveTerrain->evePhysx.body_interface->RemoveBody(obj);
+			eveTerrain->evePhysx.body_interface->DestroyBody(obj);
+			chunkPhysxObjects.erase(std::find(chunkPhysxObjects.begin(), chunkPhysxObjects.end(), *it));
+		}
+	};
+
 	void Chunk::createFace(Octant *octant, std::vector<glm::vec3> colors, const OctantSide side) {
+		/*if (octant->container->position == glm::ivec3(16, 0, -16)) {
+			if (octant->position == glm::vec3(9, -3, -23)) {
+				std::cout << ">>>>>";
+			}
+			std::cout << glm::to_string(octant->position) << std::endl;
+		}*/
+		
 		boost::lock_guard<boost::mutex> lock(mutex);
 		EASY_FUNCTION(profiler::colors::Red200);
 
@@ -363,10 +385,19 @@ namespace eve {
 			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
 			{glm::vec3(1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
 			{glm::vec3(-1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
-			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0.000000000000000001)},
+			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
 		};
 		std::vector<uint32_t> quadIndices = {0, 1, 2, 1, 0, 3};
 
+		/*if (chunkBuilder.vertices.size() == 0) {
+			std::cout << glm::to_string(octant->position) << std::endl;
+		}*/
+
+		chunkPhysxObjects.push_back(eveTerrain->evePhysx.createStaticPlane(
+			glm::vec3(float(octant->width) / 2, float(octant->width) / 2, float(octant->width) / 2), 
+			position,
+			octant->getChildLocalOffset()));
+		
 		int i = 0;
 		for (EveModel::Vertex vertex : quadVertices) {
 			vertex.position = rotateV(side, vertex.position);
@@ -379,19 +410,22 @@ namespace eve {
 		}
 
 		for (uint32_t index : quadIndices) {
-			index += chunkBuilder.vertices.size();
+			index += chunkBuilder.vertices.size() - i;
 			chunkBuilder.indices.push_back(index);
 		}
 	}
 
 	void Chunk::remesh2rec(Octant *octant, bool rec) {
+		if (octant->position == glm::vec3(9, -3, -23)) {
+			std::cout << "hi";
+		}
+
 		if (!octant->isAllSame) {
 			if (rec) {
 				for (Octant *oct : octant->octants) {
 					if (oct)
 						remesh2rec(oct);
 				}
-				EASY_END_BLOCK;
 			}
 		}
 		
@@ -416,6 +450,13 @@ namespace eve {
 
 			for (const OctantSide side : sidesToCheck) {
 
+				if (side.direction == OctantSides::Top.direction) {
+					if (octant->container->eveTerrain->playerCurrentLevel == floor(octant->position.y - octant->width)) {
+						octant->marked = true;
+						//std::cout << "m";
+					}
+				}
+
 				std::vector<Octant *> neighbors = octant->getNeighbors(side);
 
 				if (neighbors.size() == 1) { // same size
@@ -424,7 +465,9 @@ namespace eve {
 						if (!octant->marked) {
 							createFace(octant, WHITE, side);
 						}
-						else {createFace(octant, MARK, side);}
+						else {
+							createFace(octant, MARK, side);
+						}
 					}
 				}
 				/*else if (neighbors.size() == 0) { // top or down level
@@ -458,7 +501,9 @@ namespace eve {
 							if (!octant->marked) {
 								createFace(octant, WHITE, side);
 							}
-							else {createFace(octant, MARK, side);}
+							else {
+								createFace(octant, MARK, side);
+							}
 						}
 					}
 				}
@@ -467,14 +512,23 @@ namespace eve {
 	}
 
 	void Chunk::remesh2(Chunk *chunk) {
+		//std::cout << chunk->id << "s" << std::endl;
 		EASY_BLOCK("Remesh V2");
 		EASY_FUNCTION(profiler::colors::Blue100);
+		{
+			boost::lock_guard<boost::mutex> chunkLock(chunk->mutex);
+			chunk->isQueued = true;
+			chunk->chunkBuilder.indices.clear();
+			chunk->chunkBuilder.vertices.clear();
+			chunk->chunkObjectMap.clear();
+			chunk->chunkModel.reset();
+		}
 		remesh2rec(chunk->root);
 
 		EASY_BLOCK("Push chunk object");
-		boost::lock_guard<boost::mutex> lock(eveTerrain->mutex);
-		boost::lock_guard<boost::mutex> lock2(mutex);
 		EveTerrain *eveTerrain = chunk->eveTerrain;
+		boost::lock_guard<boost::mutex> terrainLock(eveTerrain->mutex);
+		boost::lock_guard<boost::mutex> chunkLock(mutex);
 
 		eveTerrain->remeshingProcessing.erase(
 			std::find(eveTerrain->remeshingProcessing.begin(),
@@ -486,5 +540,7 @@ namespace eve {
 			<< " remeshing " << glm::to_string(this->position) 
 			<< " vertices: " << chunkBuilder.vertices.size() 
 			<< std::endl;*/
+		
+		//std::cout << chunk->id << "e" << std::endl;
 	}
 }

@@ -212,7 +212,7 @@ namespace eve
 		ImPlot::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
 		// Setup Dear ImGui style

@@ -4,7 +4,7 @@
 
 namespace eve {
 
-	EveTerrain::EveTerrain(EveDevice &device) : eveDevice{device} {
+	EveTerrain::EveTerrain(EveDevice &device, EvePhysx &physx) : eveDevice{device}, evePhysx{physx} {
 		voxelMap.push_back(new EveVoxel(0, "air", false));
 		voxelMap.push_back(new EveVoxel(1, "stone", true));
 		init();
@@ -19,6 +19,9 @@ namespace eve {
 
 	void EveTerrain::init() {
 		std::unordered_map<glm::ivec3, Chunk*> generated{};
+
+		maxHeight = floor(float(yRange.x * CHUNK_SIZE) - float(CHUNK_SIZE / 2));
+		minHeight = floor(float(yRange.y * CHUNK_SIZE) + float(CHUNK_SIZE / 2));
 
 		Chunk *lastChunk;
 
@@ -92,6 +95,22 @@ namespace eve {
 	void EveTerrain::onMouseWheel(GLFWwindow *window, double xoffset, double yoffset) {
 		playerCurrentLevel += -yoffset;
 		std::cout << "level: " << playerCurrentLevel << std::endl;
+		vkDeviceWaitIdle(eveDevice.device());
+		boost::lock_guard<boost::mutex> lock(mutex);
+		for (auto it = chunkMap.begin(); it != chunkMap.end();) {
+			Chunk *chunk = it->second;
+			if ((chunk->position.y <= playerCurrentLevel + CHUNK_SIZE / 2) &&
+			(chunk->position.y >= playerCurrentLevel - CHUNK_SIZE / 2)) {
+				std::cout << glm::to_string(chunk->position) << std::endl;
+				boost::lock_guard<boost::mutex> lock2(chunk->mutex);
+				remeshingCandidates.push_back(chunk);
+				chunkMap.erase(it++);
+				//it++;
+			}
+			else {
+				it++;
+			}
+		}
 	}
 
 	void EveTerrain::tick(float deltaTime) {
@@ -110,9 +129,9 @@ namespace eve {
 				if (chunk) {
 					if (chunk->id) {
 						if (chunk->chunkBuilder.vertices.size()) {
-							if (chunk->root->position == glm::vec3(-16, -16, -16)) {
+							/*if (chunk->root->position == glm::vec3(-16, -16, -16)) {
 								std::cout << "uwu";
-							}
+							}*/
 							chunk->chunkModel = std::make_unique<EveModel>(eveDevice, chunk->chunkBuilder);
 							auto object = EveGameObject::createGameObject();
 							object.model = chunk->chunkModel;
@@ -132,9 +151,6 @@ namespace eve {
 			boost::lock_guard<boost::mutex> lock(mutex);
 			for (auto it = remeshingCandidates.begin(); it != remeshingCandidates.end();) {
 				Chunk *chunk = *it;
-				chunk->isQueued = true;
-				chunk->chunkObjectMap.clear();
-				chunk->chunkModel.reset();
 				remeshingProcessing.push_back(*it);
 				meshingPool.pushChunkToRemeshingQueue(*it);
 				remeshingCandidates.erase(std::find(remeshingCandidates.begin(), remeshingCandidates.end(), *it));
@@ -168,12 +184,13 @@ namespace eve {
 		}
 
 		if (shouldReset_) {
-			maxHeight = floor(float(yRange.x * CHUNK_SIZE) - float(CHUNK_SIZE / 2));
-			minHeight = floor(float(yRange.y * CHUNK_SIZE) + float(CHUNK_SIZE / 2));
 			shouldReset_ = false;
 			remeshingCandidates.clear();
 			remeshingProcessing.clear();
 			remeshingProcessed.clear();
+			vkDeviceWaitIdle(eveDevice.device());
+			for (auto it : chunkMap)
+				it.second->~Chunk();
 			chunkMap.clear();
 			init();
 		}

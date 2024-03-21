@@ -26,6 +26,7 @@ add_executable(${PROJECT_NAME}
 
 # Compile flags - you can customize these
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+#target_compile_options(${PROJECT_NAME} PUBLIC "-fsanitize=address")
 
 # Set the output directory for the compiled .o files
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
@@ -180,6 +181,8 @@ target_link_libraries(${PROJECT_NAME} X11)
 target_link_libraries(${PROJECT_NAME} Xxf86vm)
 target_link_libraries(${PROJECT_NAME} Xi)
 target_link_libraries(${PROJECT_NAME} Xrandr)
+#target_link_libraries(${PROJECT_NAME} asan)
+
 
 
 

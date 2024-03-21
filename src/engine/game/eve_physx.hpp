@@ -20,6 +20,11 @@
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
+#include "glm/ext.hpp"
+#include "glm/gtx/hash.hpp"
+
 // STL includes
 #include <iostream>
 #include <cstdarg>
@@ -200,7 +205,8 @@ namespace eve {
 			EvePhysx &operator=(const EvePhysx&) = delete;
 
 			void initPhysx();
-			void createShapes();
+			void createHelloShapes();
+			BodyID createStaticPlane(glm::vec3 size, glm::vec3 pos, glm::vec3 offset);
 			void tick(float deltaTime);
 			void destroy();
 
@@ -212,7 +218,7 @@ namespace eve {
 
 			// This is the max amount of rigid bodies that you can add to the physics system. If you try to add more you'll get an error.
 			// Note: This value is low because this is a simple test. For a real project use something in the order of 65536.
-			const uint cMaxBodies = 1024;
+			const uint cMaxBodies = 65536;
 
 			// This determines how many mutexes to allocate to protect rigid bodies from concurrent access. Set it to 0 for the default settings.
 			const uint cNumBodyMutexes = 0;

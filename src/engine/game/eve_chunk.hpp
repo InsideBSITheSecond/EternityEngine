@@ -11,6 +11,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/range/join.hpp>
 #include "eve_model.hpp"
+#include "eve_physx.hpp"
 
 namespace eve {
 	static constexpr int MAX_RESOLUTION = 1;
@@ -140,17 +141,15 @@ namespace eve {
 			glm::ivec3 position;
 			EveGameObject::Map chunkObjectMap;
 
-			EveModel::Builder chunkBuilder{};
+			EveModel::Builder chunkBuilder;
 			std::shared_ptr<EveModel> chunkModel;
 			std::shared_ptr<EveGameObject> chunkObject;
 
+			std::vector<BodyID> chunkPhysxObjects;
 
-			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain): root{r}, position{pos}, eveTerrain{terrain} {
-				for (int i = 0; i < 6; i++)
-					neighbors[i] = nullptr;
-			};
+			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain);
 
-			~Chunk() {}
+			~Chunk();
 
 			void remesh(Octant *octant);
 
