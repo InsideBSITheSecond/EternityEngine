@@ -1,17 +1,29 @@
 # Eternity Voxel Engine
-powered by Vulkan
+very early work in progress
 
-## Features:
+## Current Features:
  - Octree Voxel System
- - OBJ model support
- - Entity Component System
- - World Generation
- - Dynamic Light
+   <p><img src="https://i.imgur.com/4vnXkAy.png" height="200px"></p>
+ - Greedy Meshing
+   <p><img src="https://i.imgur.com/CTJbDYh.png" height="200px"></p>
+   
+   
+   
+ - Multi-threaded WorldGen & Remeshing
+ - Dynamic Physics System
+ - OBJ Support
  - Terrain Modification
- - Dynamic Collision
  - Performance Profiling
- - Point light
- - Directional light
+ - Point Lights
+ - Directional Light
+
+## Planned Features:
+ - Behavior Tree AI
+ - Fluid System
+ - FBX Support
+ - Entity Component System
+ - Dynamic Lights
+ - (netcode)
  - (modding api)
  - (data driven)
 
