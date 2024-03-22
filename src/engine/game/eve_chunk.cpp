@@ -191,7 +191,7 @@ namespace eve {
 
 	Octant *Octant::findNeighborFromEdge(const OctantSide side){
 		EASY_FUNCTION(profiler::colors::Orange600);
-		if (si == -1) {
+		if (si == -1 ) {
 			if (container->neighbors[side.neighborDirection]) {
 				return transposePathingFromContainerInvDir(side);
 			}
@@ -308,6 +308,48 @@ namespace eve {
 		return std::vector<Octant *> {};
 	}
 
+	int Octant::getChildIndexFromPos(glm::vec3 queryPoint) {
+		glm::vec3 topLeftFront = glm::vec3(
+			position.x + float(width) / 2,
+			position.y - float(width) / 2,
+			position.z + float(width) / 2);
+
+		glm::vec3 botRightBack = glm::vec3(
+			position.x - float(width) / 2,
+			position.y + float(width) / 2,
+			position.z - float(width) / 2);
+
+		int index = 0;
+
+		//std::cout << glm::to_string(position) << " " << glm::to_string(queryPoint) << std::endl;
+		//std::cout << width << " " << glm::to_string(topLeftFront) << " " << glm::to_string(botRightBack) << std::endl;
+		
+		if ((queryPoint.y >= topLeftFront.y && queryPoint.y <= botRightBack.y) || width == MAX_RESOLUTION) {
+			if ((queryPoint.x <= topLeftFront.x && queryPoint.x >= botRightBack.x) || width == MAX_RESOLUTION) {
+				if ((queryPoint.z <= topLeftFront.z && queryPoint.z >= botRightBack.z) || width == MAX_RESOLUTION) {
+					if (queryPoint.y >= position.y)
+						index |= 4;			
+					if (queryPoint.x >= position.x)
+						index |= 2;
+					if (queryPoint.z >= position.z)
+						index |= 1;
+				}else {std::cout << "z prob" << std::endl;}
+			}else {std::cout << "x prob" << std::endl;}
+		}else {std::cout << "y prob" << std::endl;}
+
+		//std::cout << index << " vs " << getOctantIndexFromPos(position, queryPoint) << std::endl; 
+		
+		return index;
+	}
+
+	Octant *Octant::getSmallestContainerAt(glm::vec3 coord) {
+		if (!isLeaf && !isAllSame) {
+			int childIndex = getChildIndexFromPos(coord);
+			return octants[childIndex]->getSmallestContainerAt(coord);
+		}
+		return this;
+	}
+
 	glm::vec3 rotateV(const OctantSide side, glm::vec3 coord) {
 		if (side.direction == 4) {
 			glm::mat4 rotationMat(1);
@@ -361,12 +403,8 @@ namespace eve {
 
 	Chunk::~Chunk(){
 		std::cout << "Destroyed chunk" << std::endl;
-		for (auto it = chunkPhysxObjects.begin(); it != chunkPhysxObjects.end();) {
-			BodyID obj = *it;
-			eveTerrain->evePhysx.body_interface->RemoveBody(obj);
-			eveTerrain->evePhysx.body_interface->DestroyBody(obj);
-			chunkPhysxObjects.erase(std::find(chunkPhysxObjects.begin(), chunkPhysxObjects.end(), *it));
-		}
+		eveTerrain->evePhysx.body_interface->RemoveBody(chunkPhysxObject);
+		eveTerrain->evePhysx.body_interface->DestroyBody(chunkPhysxObject);
 	};
 
 	void Chunk::createFace(Octant *octant, std::vector<glm::vec3> colors, const OctantSide side) {
@@ -393,11 +431,17 @@ namespace eve {
 			std::cout << glm::to_string(octant->position) << std::endl;
 		}*/
 
-		chunkPhysxObjects.push_back(eveTerrain->evePhysx.createStaticPlane(
+		/*eveTerrain->evePhysx.createStaticPlane(
 			glm::vec3(float(octant->width) / 2, float(octant->width) / 2, float(octant->width) / 2), 
 			position,
-			octant->getChildLocalOffset()));
-		
+			octant->getChildLocalOffset());*/
+
+		if (!octant->octantPhysxObject) {
+			BoxShapeSettings floor_shape_settings(Vec3(float(octant->width) / 2, float(octant->width) / 2, float(octant->width) / 2));
+			octant->octantPhysxObject = floor_shape_settings.Create().Get();
+			chunkShapeSettings.AddShape(Vec3(offset.x, -offset.y, offset.z), Quat::sIdentity(), octant->octantPhysxObject);
+		}
+
 		int i = 0;
 		for (EveModel::Vertex vertex : quadVertices) {
 			vertex.position = rotateV(side, vertex.position);
@@ -416,9 +460,6 @@ namespace eve {
 	}
 
 	void Chunk::remesh2rec(Octant *octant, bool rec) {
-		if (octant->position == glm::vec3(9, -3, -23)) {
-			std::cout << "hi";
-		}
 
 		if (!octant->isAllSame) {
 			if (rec) {
@@ -449,6 +490,10 @@ namespace eve {
 			EASY_BLOCK("Worth considering for render");
 
 			for (const OctantSide side : sidesToCheck) {
+
+				if (octant->position == glm::vec3(7.5, -2.5, -38.5) && side.direction == -2) {
+					octant->marked = true;
+				}
 
 				if (side.direction == OctantSides::Top.direction) {
 					if (octant->container->eveTerrain->playerCurrentLevel == floor(octant->position.y - octant->width)) {
@@ -523,7 +568,24 @@ namespace eve {
 			chunk->chunkObjectMap.clear();
 			chunk->chunkModel.reset();
 		}
+
+		if (!chunkPhysxObject.IsInvalid()) {
+			eveTerrain->evePhysx.body_interface->RemoveBody(chunkPhysxObject);
+			eveTerrain->evePhysx.body_interface->DestroyBody(chunkPhysxObject);
+		}
+
 		remesh2rec(chunk->root);
+
+		{
+			Ref<Shape> chunkShape = chunkShapeSettings.Create().Get();
+
+			RotatedTranslatedShapeSettings translatedChunkShapeSettings(Vec3(root->position.x, -root->position.y, root->position.z), Quat::sIdentity(), chunkShape);
+			Ref<Shape> translatedChunkShape = translatedChunkShapeSettings.Create().Get();
+
+			BodyCreationSettings chunkSettings(translatedChunkShape, Vec3(0, 0, 0), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+			BodyID id = eveTerrain->evePhysx.body_interface->CreateAndAddBody(chunkSettings, EActivation::DontActivate);
+			chunkPhysxObject = id;
+		}
 
 		EASY_BLOCK("Push chunk object");
 		EveTerrain *eveTerrain = chunk->eveTerrain;

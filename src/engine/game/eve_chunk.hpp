@@ -102,6 +102,8 @@ namespace eve {
 			
 			Octant *getChild(int index) { return octants[index]; }
 			EveVoxel *getFirstFoundVoxel(Octant *octant);
+			int getChildIndexFromPos(glm::vec3 queryPoint);
+			Octant *getSmallestContainerAt(glm::vec3 coord);
 
 			Octant* transposePathingFromContainerInvDir(const OctantSide side);
 
@@ -114,6 +116,8 @@ namespace eve {
 			void noiseOctant(Octant *octant);
 
 			glm::vec3 getChildLocalOffset();
+
+			Ref<Shape> octantPhysxObject = nullptr;
 	};
 
 	class EveTerrain;
@@ -145,7 +149,8 @@ namespace eve {
 			std::shared_ptr<EveModel> chunkModel;
 			std::shared_ptr<EveGameObject> chunkObject;
 
-			std::vector<BodyID> chunkPhysxObjects;
+			BodyID chunkPhysxObject;
+			MutableCompoundShapeSettings chunkShapeSettings;
 
 			Chunk(Octant *r, glm::vec3 pos, EveTerrain *terrain);
 
@@ -158,6 +163,10 @@ namespace eve {
 			void remesh2(Chunk *chunk);
 
 			void noise(Octant *octant);
+
+			bool isCoordInChunk(glm::vec3 coord);
+			Octant *getSmallestContainerOf(glm::vec3 coord);
+
 			EveTerrain *eveTerrain;
 		private:
 	};

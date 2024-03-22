@@ -274,8 +274,26 @@ namespace eve
     	ImGuiIO& io = ImGui::GetIO(); (void)io;
 		
 		ImGui::Begin("Infos");
-		ImGui::Text("camera position: %f %f %f", frameInfo.camera.getPosition().x, frameInfo.camera.getPosition().y, frameInfo.camera.getPosition().z);
-		
+		glm::vec3 camPos = frameInfo.camera.getPosition(); 
+		ImGui::Text("camera position: %f %f %f", camPos.x, camPos.y, camPos.z);
+
+		Chunk *chunk = nullptr;
+		glm::vec3 chunkPos = glm::vec3(0);
+		chunk = eveTerrain.findContainerChunkAt(camPos);
+		if (chunk)
+			chunkPos = chunk->position;
+		ImGui::Text("Camera in chunk: %f %f %f", chunkPos.x, chunkPos.y, chunkPos.z);
+
+		Octant *octant = nullptr;
+		glm::vec3 octantPos = glm::vec3(0);
+		if (chunk) {
+			octant = chunk->root->getSmallestContainerAt(camPos);
+			if (octant)
+				octantPos = octant->position;
+		}
+		ImGui::Text("Camera in octant: %f %f %f", octantPos.x, octantPos.y, octantPos.z);
+
+
 		ImGui::SeparatorText("noising queue");
 		ImGui::Text("candidates: %zu ", eveTerrain.noisingCandidates.size()); ImGui::SameLine();
 		ImGui::Text("processing: %zu ", eveTerrain.noisingProcessing.size()); ImGui::SameLine();
@@ -363,12 +381,12 @@ namespace eve
 				ImGui::InputInt("max", &range.y);
 				if (ImGui::SliderInt3("voxel coords", glm::value_ptr(pos), range.x, range.y)) {
 					if (liveRebuild){
-						eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
+						//eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
 						//eveTerrain.needRebuild = true;
 					}
 				}
 				if (ImGui::Button("change terrain at slider position")){
-					eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
+					//eveTerrain.changeTerrain(pos, eveTerrain.voxelMap[0]);
 					//eveTerrain.needRebuild = true;
 				}
 			}

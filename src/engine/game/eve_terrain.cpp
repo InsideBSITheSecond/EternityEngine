@@ -177,7 +177,8 @@ namespace eve {
 				if (chunk->id) {
 					chunk->isQueued = true;
 					noisingProcessing.push_back(*it);
-					noisingPool.pushChunkToNoisingQueue(*it);
+					//noisingPool.pushChunkToNoisingQueue(*it);
+					meshingPool.pushChunkToNoisingQueue(*it);
 					noisingCandidates.erase(std::find(noisingCandidates.begin(), noisingCandidates.end(), *it));
 				}
 			}
@@ -227,7 +228,7 @@ namespace eve {
 		}
 	}
 
-	int getOctantIndexFromPos(glm::ivec3 nodePosition, glm::ivec3 queryPoint) {
+	/*int getOctantIndexFromPos(glm::ivec3 nodePosition, glm::ivec3 queryPoint) {
 		
 		/*
 		* 0: left	   top		near
@@ -250,49 +251,15 @@ namespace eve {
 		*/
 		
 
-		int childIndex =  0;
+		/*int childIndex =  0;
 		childIndex += (queryPoint.y > nodePosition.y) ? 4 : 0;
 		childIndex += (queryPoint.x > nodePosition.x) ? 2 : 0;
 		childIndex += (queryPoint.z > nodePosition.z) ? 1 : 0;
 		//std::cout << childIndex;
 		return childIndex;
-	}
-	
-	int getOctantIndexFromPos2(Octant *node, glm::ivec3 queryPoint) {
-		glm::vec3 topLeftFront = glm::vec3(
-			node->position.x + trunc(node->width / 2),
-			node->position.y - trunc(node->width / 2),
-			node->position.z + trunc(node->width / 2));
+	}*/
 
-		glm::vec3 botRightBack = glm::vec3(
-			node->position.x - trunc(node->width / 2),
-			node->position.y + trunc(node->width / 2),
-			node->position.z - trunc(node->width / 2));
-
-		int index = 0;
-
-		//std::cout << glm::to_string(node->position) << " " << glm::to_string(queryPoint) << std::endl;
-		//std::cout << node->width << " " << glm::to_string(topLeftFront) << " " << glm::to_string(botRightBack) << std::endl;
-		
-		if ((queryPoint.y >= topLeftFront.y && queryPoint.y <= botRightBack.y) || node->width == MAX_RESOLUTION) {
-			if ((queryPoint.x <= topLeftFront.x && queryPoint.x >= botRightBack.x) || node->width == MAX_RESOLUTION) {
-				if ((queryPoint.z <= topLeftFront.z && queryPoint.z >= botRightBack.z) || node->width == MAX_RESOLUTION) {
-					if (queryPoint.y >= node->position.y)
-						index |= 4;			
-					if (queryPoint.x >= node->position.x)
-						index |= 2;
-					if (queryPoint.z >= node->position.z)
-						index |= 1;
-				}else {std::cout << "z prob" << std::endl;}
-			}else {std::cout << "x prob" << std::endl;}
-		}else {std::cout << "y prob" << std::endl;}
-
-		//std::cout << index << " vs " << getOctantIndexFromPos(node->position, queryPoint) << std::endl; 
-		
-		return index;
-	}
-
-	Octant EveTerrain::queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint) {
+	/*Octant EveTerrain::queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint) {
 		if(node->isAllSame)
 			return *node;
 
@@ -305,17 +272,10 @@ namespace eve {
 			queryPoint
 		);
 		
-	}
+	}*/
 
-	void EveTerrain::changeTerrain(glm::ivec3 pos, EveVoxel *voxel) {
+	Chunk *EveTerrain::findContainerChunkAt(glm::ivec3 pos) {
 		EASY_FUNCTION(profiler::colors::Magenta);
-		//glm::ivec3 lookingFor = glm::vec3(
-		//	CHUNK_SIZE * ((pos.x - 1) / (CHUNK_SIZE / 2)), 
-		//	CHUNK_SIZE * ((pos.y - 1) / (CHUNK_SIZE / 2)),
-		//	CHUNK_SIZE * ((pos.z - 1) / (CHUNK_SIZE / 2)));
-
-		//std::cout << std::endl << "looking for " << glm::to_string(lookingFor) << std::endl;
-		//std::cout << "pos request " << glm::to_string(pos) << std::endl;
 		for (auto &kv : chunkMap) {
 			Chunk *chunk = kv.second;
 			glm::vec3 topLeftFront = glm::ivec3(
@@ -333,19 +293,20 @@ namespace eve {
 			if (pos.y >= topLeftFront.y && pos.y <= botRightBack.y - 1) {
 				if (pos.x <= topLeftFront.x - 1 && pos.x >= botRightBack.x) {
 					if (pos.z <= topLeftFront.z - 1 && pos.z >= botRightBack.z) {
-						changeOctantTerrain(chunk->root, pos, voxel);
-						return;
+						//changeOctantTerrain(chunk->root, pos, voxel);
+						return chunk;
 					}
 				}
 			}
 		}
 
 		std::cout << "Chunk not found" << std::endl;
+		return nullptr;
 	}
 
-	Octant* EveTerrain::changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel) {
+	/*Octant* EveTerrain::changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel) {
 		EASY_FUNCTION(profiler::colors::Magenta);
-		int childIndex = getOctantIndexFromPos2(node, queryPoint);
+		int childIndex = getOctantIndexFromPos(node, queryPoint);
 		Octant *child = node->getChild(childIndex);
 
 		//getOctantIndexFromPos2(node, queryPoint);
@@ -395,5 +356,5 @@ namespace eve {
 		}
 
 		return child;
-	}
+	}*/
 }

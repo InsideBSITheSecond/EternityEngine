@@ -36,10 +36,10 @@ namespace eve {
 			EveTerrain(const EveTerrain&) = delete;
 			EveTerrain &operator=(const EveTerrain&) = delete;
 
-			Octant queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint);
+			//Octant queryTerrain(Octant *node, int depth, glm::ivec3 queryPoint);
 
-			void changeTerrain(glm::ivec3 pos, EveVoxel *voxel);
-			Octant* changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
+			Chunk *findContainerChunkAt(glm::ivec3 pos);
+			//Octant* changeOctantTerrain(Octant *node, glm::ivec3 queryPoint, EveVoxel *voxel);
 
 			void onMouseWheel(GLFWwindow *window, double xoffset, double yoffset);
 
@@ -106,8 +106,8 @@ namespace eve {
 			int playerCurrentLevel = 0;
 
 		private:
-			EveThreadPool noisingPool{12};
-			EveThreadPool meshingPool{12};
+			EveThreadPool noisingPool{8};
+			EveThreadPool meshingPool{8};
 			
 			bool shouldReset_ = false;
 			bool shouldRemesh_ = false;
