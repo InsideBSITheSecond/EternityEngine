@@ -161,8 +161,10 @@ target_link_libraries(implot
 # namespaced alias
 add_library(${PROJECT_NAME}::implot ALIAS implot)
 target_link_libraries(${PROJECT_NAME} implot)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/implot)
+target_include_directories(${PROJECT_NAME} PRIVATE src/libs/implot)
 
+
+#target_include_directories(${PROJECT_NAME} PRIVATE src/libs/stb)
 
 # required glfw
 target_link_libraries(${PROJECT_NAME} glfw)
