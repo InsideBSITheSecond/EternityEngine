@@ -39,6 +39,16 @@ namespace eve {
 			void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 			void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
+			void createTextureImage();
+			void createTextureImageView();
+			void createTextureSampler();
+
+			VkImage textureImage;
+			VkDeviceMemory textureImageMemory;
+
+			VkImageView textureImageView;
+			VkSampler textureSampler;
+
 		private:
 			void createCommandBuffers();
 			void freeCommandBuffers();

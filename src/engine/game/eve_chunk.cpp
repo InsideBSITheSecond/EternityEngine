@@ -420,9 +420,9 @@ namespace eve {
 
 		glm::vec3 offset = octant->getChildLocalOffset();
 		std::vector<EveModel::Vertex> quadVertices = {
-			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
+			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 0)},
 			{glm::vec3(1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
-			{glm::vec3(-1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
+			{glm::vec3(-1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 1)},
 			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
 		};
 		std::vector<uint32_t> quadIndices = {0, 1, 2, 1, 0, 3};
@@ -450,6 +450,7 @@ namespace eve {
 			vertex.position += offset;
 			vertex.position = offsetV(side, vertex.position, float(octant->width) / 2);
 			vertex.color = colors[i++];
+			vertex.uv *= octant->width;
 			chunkBuilder.vertices.push_back(vertex);
 		}
 

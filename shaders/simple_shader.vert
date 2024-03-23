@@ -8,6 +8,7 @@ layout(location = 3) in vec2 uv;
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragPosWorld;
 layout(location = 2) out vec3 fragNormalWorld;
+layout(location = 3) out vec2 fragUv;
 
 struct PointLight {
 	vec4 position; //ignote w
@@ -41,4 +42,5 @@ void main() {
 	float lightIntensity = max(dot(fragNormalWorld, normalize(ubo.directionalLight)), 0);
 	
 	fragColor = lightIntensity * color;
+	fragUv = uv;
 }
