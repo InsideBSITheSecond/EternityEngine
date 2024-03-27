@@ -36,7 +36,13 @@ very early work in progress
  - ImGUI + ImPlot
  - Easy Profiler
 
-## Build (only tested on linux & prob broken, have fun)
+## Build (only tested on linux)
+### (it is atm broken tho)
+list of broken things:
+ - compile perlinnoise yourself, it's not compiled by the project.
+ - you prob gonna need to tweak jolt's config to your cpu's instruction set
+ - prob some other things
+
 required :
  - cmake
  - a c++ compiler
