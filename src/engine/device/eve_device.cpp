@@ -224,6 +224,17 @@ namespace eve
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
+		VkPhysicalDeviceDescriptorIndexingFeatures indexingInfo{};
+		indexingInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+
+		//enable non-uniform indexing
+		indexingInfo.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+		indexingInfo.runtimeDescriptorArray = VK_TRUE;
+		indexingInfo.descriptorBindingVariableDescriptorCount = VK_TRUE;
+		indexingInfo.descriptorBindingPartiallyBound = VK_TRUE;
+
+		createInfo.pNext = &indexingInfo;
+
 		// might not really be necessary anymore because device specific validation layers
 		// have been deprecated
 		if (enableValidationLayers)

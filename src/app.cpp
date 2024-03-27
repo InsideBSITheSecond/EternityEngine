@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "engine/device/eve_keyboard.hpp"
 #include "engine/utils/eve_buffer.hpp"
-#include "engine/systems/simple_render_system.hpp"
+#include "engine/systems/base_render_system.hpp"
 #include "engine/systems/point_light_system.hpp"
 #include "engine/systems/imgui_system.hpp"
 #include "engine/game/eve_camera.hpp"
@@ -55,25 +55,35 @@ namespace eve
 		auto globalSetLayout = EveDescriptorSetLayout::Builder(eveDevice)
 			.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS)			// ubo
 			.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS)	// debug
-			.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT) // textures
-			.build();
+			.addBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 32) // textures (max 32 in array)
+			.build({
+				0, 
+				0, 
+				VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT
+			});
 
 		std::vector<VkDescriptorSet> globalDescriptorSets(EveSwapChain::MAX_FRAMES_IN_FLIGHT);
 		for (int i = 0; i < globalDescriptorSets.size(); i++) {
 			auto bufferInfo = uboBuffers[i]->descriptorInfo();
 
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = eveRenderer.textureImageView;
-			imageInfo.sampler = eveRenderer.textureSampler;
+			std::vector<VkDescriptorImageInfo> imageInfos{};
+			
+
+			for (int i = 0; i < eveRenderer.textureImageViews.size(); i++) {
+				VkDescriptorImageInfo imageInfo;
+				imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				imageInfo.imageView = eveRenderer.textureImageViews[i];
+				imageInfo.sampler = eveRenderer.textureSampler;
+				imageInfos.push_back(imageInfo);
+			}
 
 			EveDescriptorWriter(*globalSetLayout, *globalPool)
 				.writeBuffer(0, &bufferInfo)
-				.writeImage(2, &imageInfo)
+				.writeImage(2, imageInfos)
 				.build(globalDescriptorSets[i]);
 		}
 
-		SimpleRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout(), eveWorld.eveTerrain};
+		BaseRenderSystem simpleRenderSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout(), eveWorld.eveTerrain};
 		PointLightSystem pointLightSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 		ImGuiSystem imGuiSystem{eveDevice, eveRenderer.getSwapChainRenderPass(), globalSetLayout->getDescriptorSetLayout()};
 

@@ -39,14 +39,15 @@ namespace eve {
 			void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 			void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
-			void createTextureImage();
-			void createTextureImageView();
+			void createTextureImage(char *filename, VkImage *textureImage, VkDeviceMemory *textureImageMemory);
+			void createTextureImages();
+			void createTextureImageViews();
 			void createTextureSampler();
 
-			VkImage textureImage;
-			VkDeviceMemory textureImageMemory;
+			std::vector<VkImage> textureImages;
+			std::vector<VkDeviceMemory> textureImageMemories;
+			std::vector<VkImageView> textureImageViews;
 
-			VkImageView textureImageView;
 			VkSampler textureSampler;
 
 		private:

@@ -4,193 +4,233 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace eve {
+namespace eve
+{
 
-// *************** Descriptor Set Layout Builder *********************
+	// *************** Descriptor Set Layout Builder *********************
 
-EveDescriptorSetLayout::Builder &EveDescriptorSetLayout::Builder::addBinding(
-    uint32_t binding,
-    VkDescriptorType descriptorType,
-    VkShaderStageFlags stageFlags,
-    uint32_t count) {
-  assert(bindings.count(binding) == 0 && "Binding already in use");
-  VkDescriptorSetLayoutBinding layoutBinding{};
-  layoutBinding.binding = binding;
-  layoutBinding.descriptorType = descriptorType;
-  layoutBinding.descriptorCount = count;
-  layoutBinding.stageFlags = stageFlags;
-  bindings[binding] = layoutBinding;
-  return *this;
-}
+	EveDescriptorSetLayout::Builder &EveDescriptorSetLayout::Builder::addBinding(
+		uint32_t binding,
+		VkDescriptorType descriptorType,
+		VkShaderStageFlags stageFlags,
+		uint32_t count)
+	{
+		assert(bindings.count(binding) == 0 && "Binding already in use");
+		VkDescriptorSetLayoutBinding layoutBinding{};
+		layoutBinding.binding = binding;
+		layoutBinding.descriptorType = descriptorType;
+		layoutBinding.descriptorCount = count;
+		layoutBinding.stageFlags = stageFlags;
+		bindings[binding] = layoutBinding;
+		return *this;
+	}
 
-std::unique_ptr<EveDescriptorSetLayout> EveDescriptorSetLayout::Builder::build() const {
-  return std::make_unique<EveDescriptorSetLayout>(eveDevice, bindings);
-}
+	std::unique_ptr<EveDescriptorSetLayout> EveDescriptorSetLayout::Builder::build(std::vector<VkDescriptorBindingFlags> flags) const
+	{
+		return std::make_unique<EveDescriptorSetLayout>(eveDevice, bindings, flags);
+	}
 
-// *************** Descriptor Set Layout *********************
+	// *************** Descriptor Set Layout *********************
 
-EveDescriptorSetLayout::EveDescriptorSetLayout(
-    EveDevice &eveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings)
-    : eveDevice{eveDevice}, bindings{bindings} {
-  std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
-  for (auto kv : bindings) {
-    setLayoutBindings.push_back(kv.second);
-  }
+	EveDescriptorSetLayout::EveDescriptorSetLayout(
+		EveDevice &eveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings, std::vector<VkDescriptorBindingFlags> flags)
+		: eveDevice{eveDevice}, bindings{bindings}, flags{flags}
+	{
+		std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
+		for (auto kv : bindings)
+		{
+			setLayoutBindings.push_back(kv.second);
+		}
 
-  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
-  descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-  descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
-  descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
+		VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsInfo{};
+		bindingFlagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+		bindingFlagsInfo.bindingCount = setLayoutBindings.size();
+		bindingFlagsInfo.pBindingFlags = flags.data();
 
-  if (vkCreateDescriptorSetLayout(
-          eveDevice.device(),
-          &descriptorSetLayoutInfo,
-          nullptr,
-          &descriptorSetLayout) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create descriptor set layout!");
-  }
-}
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutInfo{};
+		descriptorSetLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		descriptorSetLayoutInfo.bindingCount = static_cast<uint32_t>(setLayoutBindings.size());
+		descriptorSetLayoutInfo.pBindings = setLayoutBindings.data();
+		descriptorSetLayoutInfo.pNext = &bindingFlagsInfo;
 
-EveDescriptorSetLayout::~EveDescriptorSetLayout() {
-  vkDestroyDescriptorSetLayout(eveDevice.device(), descriptorSetLayout, nullptr);
-}
+		if (vkCreateDescriptorSetLayout(
+				eveDevice.device(),
+				&descriptorSetLayoutInfo,
+				nullptr,
+				&descriptorSetLayout) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to create descriptor set layout!");
+		}
+	}
 
-// *************** Descriptor Pool Builder *********************
+	EveDescriptorSetLayout::~EveDescriptorSetLayout()
+	{
+		vkDestroyDescriptorSetLayout(eveDevice.device(), descriptorSetLayout, nullptr);
+	}
 
-EveDescriptorPool::Builder &EveDescriptorPool::Builder::addPoolSize(
-    VkDescriptorType descriptorType, uint32_t count) {
-  poolSizes.push_back({descriptorType, count});
-  return *this;
-}
+	// *************** Descriptor Pool Builder *********************
 
-EveDescriptorPool::Builder &EveDescriptorPool::Builder::setPoolFlags(
-    VkDescriptorPoolCreateFlags flags) {
-  poolFlags = flags;
-  return *this;
-}
-EveDescriptorPool::Builder &EveDescriptorPool::Builder::setMaxSets(uint32_t count) {
-  maxSets = count;
-  return *this;
-}
+	EveDescriptorPool::Builder &EveDescriptorPool::Builder::addPoolSize(
+		VkDescriptorType descriptorType, uint32_t count)
+	{
+		poolSizes.push_back({descriptorType, count});
+		return *this;
+	}
 
-std::unique_ptr<EveDescriptorPool> EveDescriptorPool::Builder::build() const {
-  return std::make_unique<EveDescriptorPool>(eveDevice, maxSets, poolFlags, poolSizes);
-}
+	EveDescriptorPool::Builder &EveDescriptorPool::Builder::setPoolFlags(
+		VkDescriptorPoolCreateFlags flags)
+	{
+		poolFlags = flags;
+		return *this;
+	}
+	EveDescriptorPool::Builder &EveDescriptorPool::Builder::setMaxSets(uint32_t count)
+	{
+		maxSets = count;
+		return *this;
+	}
 
-// *************** Descriptor Pool *********************
+	std::unique_ptr<EveDescriptorPool> EveDescriptorPool::Builder::build() const
+	{
+		return std::make_unique<EveDescriptorPool>(eveDevice, maxSets, poolFlags, poolSizes);
+	}
 
-EveDescriptorPool::EveDescriptorPool(
-    EveDevice &eveDevice,
-    uint32_t maxSets,
-    VkDescriptorPoolCreateFlags poolFlags,
-    const std::vector<VkDescriptorPoolSize> &poolSizes)
-    : eveDevice{eveDevice} {
-  VkDescriptorPoolCreateInfo descriptorPoolInfo{};
-  descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-  descriptorPoolInfo.pPoolSizes = poolSizes.data();
-  descriptorPoolInfo.maxSets = maxSets;
-  descriptorPoolInfo.flags = poolFlags;
+	// *************** Descriptor Pool *********************
 
-  if (vkCreateDescriptorPool(eveDevice.device(), &descriptorPoolInfo, nullptr, &descriptorPool) !=
-      VK_SUCCESS) {
-    throw std::runtime_error("failed to create descriptor pool!");
-  }
-}
+	EveDescriptorPool::EveDescriptorPool(
+		EveDevice &eveDevice,
+		uint32_t maxSets,
+		VkDescriptorPoolCreateFlags poolFlags,
+		const std::vector<VkDescriptorPoolSize> &poolSizes)
+		: eveDevice{eveDevice}
+	{
+		VkDescriptorPoolCreateInfo descriptorPoolInfo{};
+		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+		descriptorPoolInfo.pPoolSizes = poolSizes.data();
+		descriptorPoolInfo.maxSets = maxSets;
+		descriptorPoolInfo.flags = poolFlags;
 
-EveDescriptorPool::~EveDescriptorPool() {
-  vkDestroyDescriptorPool(eveDevice.device(), descriptorPool, nullptr);
-}
+		if (vkCreateDescriptorPool(eveDevice.device(), &descriptorPoolInfo, nullptr, &descriptorPool) !=
+			VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to create descriptor pool!");
+		}
+	}
 
-bool EveDescriptorPool::allocateDescriptor(
-    const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const {
-  VkDescriptorSetAllocateInfo allocInfo{};
-  allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-  allocInfo.descriptorPool = descriptorPool;
-  allocInfo.pSetLayouts = &descriptorSetLayout;
-  allocInfo.descriptorSetCount = 1;
+	EveDescriptorPool::~EveDescriptorPool()
+	{
+		vkDestroyDescriptorPool(eveDevice.device(), descriptorPool, nullptr);
+	}
 
-  // Might want to create a "DescriptorPoolManager" class that handles this case, and builds
-  // a new pool whenever an old pool fills up. But this is beyond our current scope
-  if (vkAllocateDescriptorSets(eveDevice.device(), &allocInfo, &descriptor) != VK_SUCCESS) {
-    return false;
-  }
-  return true;
-}
+	bool EveDescriptorPool::allocateDescriptor(
+		const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const
+	{
+		uint32_t counts[1];
+		counts[0] = 32; // Set 0 has a variable count descriptor with a maximum of 32 elements
 
-void EveDescriptorPool::freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const {
-  vkFreeDescriptorSets(
-      eveDevice.device(),
-      descriptorPool,
-      static_cast<uint32_t>(descriptors.size()),
-      descriptors.data());
-}
+		VkDescriptorSetVariableDescriptorCountAllocateInfo setCounts = {};
+		setCounts.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO;
+		setCounts.descriptorSetCount = 1;
+		setCounts.pDescriptorCounts = counts;
 
-void EveDescriptorPool::resetPool() {
-  vkResetDescriptorPool(eveDevice.device(), descriptorPool, 0);
-}
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.pSetLayouts = &descriptorSetLayout;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pNext = &setCounts;
 
-// *************** Descriptor Writer *********************
+		// Might want to create a "DescriptorPoolManager" class that handles this case, and builds
+		// a new pool whenever an old pool fills up. But this is beyond our current scope
+		if (vkAllocateDescriptorSets(eveDevice.device(), &allocInfo, &descriptor) != VK_SUCCESS)
+		{
+			return false;
+		}
+		return true;
+	}
 
-EveDescriptorWriter::EveDescriptorWriter(EveDescriptorSetLayout &setLayout, EveDescriptorPool &pool)
-    : setLayout{setLayout}, pool{pool} {}
+	void EveDescriptorPool::freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const
+	{
+		vkFreeDescriptorSets(
+			eveDevice.device(),
+			descriptorPool,
+			static_cast<uint32_t>(descriptors.size()),
+			descriptors.data());
+	}
 
-EveDescriptorWriter &EveDescriptorWriter::writeBuffer(
-    uint32_t binding, VkDescriptorBufferInfo *bufferInfo) {
-  assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
+	void EveDescriptorPool::resetPool()
+	{
+		vkResetDescriptorPool(eveDevice.device(), descriptorPool, 0);
+	}
 
-  auto &bindingDescription = setLayout.bindings[binding];
+	// *************** Descriptor Writer *********************
 
-  assert(
-      bindingDescription.descriptorCount == 1 &&
-      "Binding single descriptor info, but binding expects multiple");
+	EveDescriptorWriter::EveDescriptorWriter(EveDescriptorSetLayout &setLayout, EveDescriptorPool &pool)
+		: setLayout{setLayout}, pool{pool} {}
 
-  VkWriteDescriptorSet write{};
-  write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  write.descriptorType = bindingDescription.descriptorType;
-  write.dstBinding = binding;
-  write.pBufferInfo = bufferInfo;
-  write.descriptorCount = 1;
+	EveDescriptorWriter &EveDescriptorWriter::writeBuffer(
+		uint32_t binding, VkDescriptorBufferInfo *bufferInfo)
+	{
+		assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
-  writes.push_back(write);
-  return *this;
-}
+		auto &bindingDescription = setLayout.bindings[binding];
 
-EveDescriptorWriter &EveDescriptorWriter::writeImage(
-    uint32_t binding, VkDescriptorImageInfo *imageInfo) {
-  assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
+		assert(
+			bindingDescription.descriptorCount == 1 &&
+			"Binding single descriptor info, but binding expects multiple");
 
-  auto &bindingDescription = setLayout.bindings[binding];
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.descriptorType = bindingDescription.descriptorType;
+		write.dstBinding = binding;
+		write.pBufferInfo = bufferInfo;
+		write.descriptorCount = 1;
 
-  assert(
-      bindingDescription.descriptorCount == 1 &&
-      "Binding single descriptor info, but binding expects multiple");
+		writes.push_back(write);
+		return *this;
+	}
 
-  VkWriteDescriptorSet write{};
-  write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-  write.descriptorType = bindingDescription.descriptorType;
-  write.dstBinding = binding;
-  write.pImageInfo = imageInfo;
-  write.descriptorCount = 1;
+	EveDescriptorWriter &EveDescriptorWriter::writeImage(
+		uint32_t binding, std::vector<VkDescriptorImageInfo> imageInfos)
+	{
+		assert(setLayout.bindings.count(binding) == 1 && "Layout does not contain specified binding");
 
-  writes.push_back(write);
-  return *this;
-}
+		auto &bindingDescription = setLayout.bindings[binding];
 
-bool EveDescriptorWriter::build(VkDescriptorSet &set) {
-  bool success = pool.allocateDescriptor(setLayout.getDescriptorSetLayout(), set);
-  if (!success) {
-    return false;
-  }
-  overwrite(set);
-  return true;
-}
+		/*assert(
+			bindingDescription.descriptorCount == 1 &&
+			"Binding single descriptor info, but binding expects multiple");*/
 
-void EveDescriptorWriter::overwrite(VkDescriptorSet &set) {
-  for (auto &write : writes) {
-    write.dstSet = set;
-  }
-  vkUpdateDescriptorSets(pool.eveDevice.device(), writes.size(), writes.data(), 0, nullptr);
-}
+		VkWriteDescriptorSet write{};
+		write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		write.descriptorType = bindingDescription.descriptorType;
+		write.dstBinding = binding;
+		write.dstArrayElement = 0;
+		write.descriptorCount = imageInfos.size();
+		write.pImageInfo = imageInfos.data();
 
-}  // namespace lve
+		writes.push_back(write);
+		return *this;
+	}
+
+	bool EveDescriptorWriter::build(VkDescriptorSet &set)
+	{
+		bool success = pool.allocateDescriptor(setLayout.getDescriptorSetLayout(), set);
+		if (!success)
+		{
+			return false;
+		}
+		overwrite(set);
+		return true;
+	}
+
+	void EveDescriptorWriter::overwrite(VkDescriptorSet &set)
+	{
+		for (auto &write : writes)
+		{
+			write.dstSet = set;
+		}
+		vkUpdateDescriptorSets(pool.eveDevice.device(), writes.size(), writes.data(), 0, nullptr);
+	}
+
+} // namespace lve

@@ -7,99 +7,107 @@
 #include <unordered_map>
 #include <vector>
 
-namespace eve {
+namespace eve
+{
 
-class EveDescriptorSetLayout {
- public:
-  class Builder {
-   public:
-    Builder(EveDevice &eveDevice) : eveDevice{eveDevice} {}
+	class EveDescriptorSetLayout
+	{
+	public:
+		class Builder
+		{
+		public:
+			Builder(EveDevice &eveDevice) : eveDevice{eveDevice} {}
 
-    Builder &addBinding(
-        uint32_t binding,
-        VkDescriptorType descriptorType,
-        VkShaderStageFlags stageFlags,
-        uint32_t count = 1);
-    std::unique_ptr<EveDescriptorSetLayout> build() const;
+			Builder &addBinding(
+				uint32_t binding,
+				VkDescriptorType descriptorType,
+				VkShaderStageFlags stageFlags,
+				uint32_t count = 1);
 
-   private:
-    EveDevice &eveDevice;
-    std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
-  };
+			std::unique_ptr<EveDescriptorSetLayout> build(std::vector<VkDescriptorBindingFlags> flags) const;
 
-  EveDescriptorSetLayout(
-      EveDevice &eveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings);
-  ~EveDescriptorSetLayout();
-  EveDescriptorSetLayout(const EveDescriptorSetLayout &) = delete;
-  EveDescriptorSetLayout &operator=(const EveDescriptorSetLayout &) = delete;
+		private:
+			EveDevice &eveDevice;
+			std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings{};
+		};
 
-  VkDescriptorSetLayout getDescriptorSetLayout() const { return descriptorSetLayout; }
+		EveDescriptorSetLayout(
+			EveDevice &eveDevice, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings, std::vector<VkDescriptorBindingFlags> flags);
+		~EveDescriptorSetLayout();
+		EveDescriptorSetLayout(const EveDescriptorSetLayout &) = delete;
+		EveDescriptorSetLayout &operator=(const EveDescriptorSetLayout &) = delete;
 
- private:
-  EveDevice &eveDevice;
-  VkDescriptorSetLayout descriptorSetLayout;
-  std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
+		VkDescriptorSetLayout getDescriptorSetLayout() const { return descriptorSetLayout; }
 
-  friend class EveDescriptorWriter;
-};
+	private:
+		EveDevice &eveDevice;
+		VkDescriptorSetLayout descriptorSetLayout;
+		std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings;
+		std::vector<VkDescriptorBindingFlags> flags;
 
-class EveDescriptorPool {
- public:
-  class Builder {
-   public:
-    Builder(EveDevice &eveDevice) : eveDevice{eveDevice} {}
+		friend class EveDescriptorWriter;
+	};
 
-    Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
-    Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
-    Builder &setMaxSets(uint32_t count);
-    std::unique_ptr<EveDescriptorPool> build() const;
+	class EveDescriptorPool
+	{
+	public:
+		class Builder
+		{
+		public:
+			Builder(EveDevice &eveDevice) : eveDevice{eveDevice} {}
 
-   private:
-    EveDevice &eveDevice;
-    std::vector<VkDescriptorPoolSize> poolSizes{};
-    uint32_t maxSets = 1000;
-    VkDescriptorPoolCreateFlags poolFlags = 0;
-  };
+			Builder &addPoolSize(VkDescriptorType descriptorType, uint32_t count);
+			Builder &setPoolFlags(VkDescriptorPoolCreateFlags flags);
+			Builder &setMaxSets(uint32_t count);
+			std::unique_ptr<EveDescriptorPool> build() const;
 
-  EveDescriptorPool(
-      EveDevice &eveDevice,
-      uint32_t maxSets,
-      VkDescriptorPoolCreateFlags poolFlags,
-      const std::vector<VkDescriptorPoolSize> &poolSizes);
-  ~EveDescriptorPool();
-  EveDescriptorPool(const EveDescriptorPool &) = delete;
-  EveDescriptorPool &operator=(const EveDescriptorPool &) = delete;
+		private:
+			EveDevice &eveDevice;
+			std::vector<VkDescriptorPoolSize> poolSizes{};
+			uint32_t maxSets = 1000;
+			VkDescriptorPoolCreateFlags poolFlags = 0;
+		};
 
-  bool allocateDescriptor(
-      const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const;
+		EveDescriptorPool(
+			EveDevice &eveDevice,
+			uint32_t maxSets,
+			VkDescriptorPoolCreateFlags poolFlags,
+			const std::vector<VkDescriptorPoolSize> &poolSizes);
+		~EveDescriptorPool();
+		EveDescriptorPool(const EveDescriptorPool &) = delete;
+		EveDescriptorPool &operator=(const EveDescriptorPool &) = delete;
 
-  void freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const;
+		bool allocateDescriptor(
+			const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet &descriptor) const;
 
-  void resetPool();
+		void freeDescriptors(std::vector<VkDescriptorSet> &descriptors) const;
 
-  VkDescriptorPool *getDescriptorPool() { return &descriptorPool; }
+		void resetPool();
 
- private:
-  EveDevice &eveDevice;
-  VkDescriptorPool descriptorPool;
+		VkDescriptorPool *getDescriptorPool() { return &descriptorPool; }
 
-  friend class EveDescriptorWriter;
-};
+	private:
+		EveDevice &eveDevice;
+		VkDescriptorPool descriptorPool;
 
-class EveDescriptorWriter {
- public:
-  EveDescriptorWriter(EveDescriptorSetLayout &setLayout, EveDescriptorPool &pool);
+		friend class EveDescriptorWriter;
+	};
 
-  EveDescriptorWriter &writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
-  EveDescriptorWriter &writeImage(uint32_t binding, VkDescriptorImageInfo *imageInfo);
+	class EveDescriptorWriter
+	{
+	public:
+		EveDescriptorWriter(EveDescriptorSetLayout &setLayout, EveDescriptorPool &pool);
 
-  bool build(VkDescriptorSet &set);
-  void overwrite(VkDescriptorSet &set);
+		EveDescriptorWriter &writeBuffer(uint32_t binding, VkDescriptorBufferInfo *bufferInfo);
+		EveDescriptorWriter &writeImage(uint32_t binding, std::vector<VkDescriptorImageInfo> imageInfo);
 
- private:
-  EveDescriptorSetLayout &setLayout;
-  EveDescriptorPool &pool;
-  std::vector<VkWriteDescriptorSet> writes;
-};
+		bool build(VkDescriptorSet &set);
+		void overwrite(VkDescriptorSet &set);
 
-}  // namespace lve
+	private:
+		EveDescriptorSetLayout &setLayout;
+		EveDescriptorPool &pool;
+		std::vector<VkWriteDescriptorSet> writes;
+	};
+
+} // namespace lve

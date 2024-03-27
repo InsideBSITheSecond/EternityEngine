@@ -13,16 +13,23 @@ namespace eve {
 	EveRenderer::EveRenderer(EveWindow &window, EveDevice &device) : eveWindow{window}, eveDevice{device} {
 		recreateSwapChain();
 		createCommandBuffers();
-		createTextureImage();
-		createTextureImageView();
+		createTextureImages();
+		createTextureImageViews();
 		createTextureSampler();
 	}
 
 	EveRenderer::~EveRenderer() {
-		vkDestroyImageView(eveDevice.device(), textureImageView, nullptr);
+		for (auto textureImageView : textureImageViews)
+			vkDestroyImageView(eveDevice.device(), textureImageView, nullptr);
+
 		vkDestroySampler(eveDevice.device(), textureSampler, nullptr);
-		vkDestroyImage(eveDevice.device(), textureImage, nullptr);
-		vkFreeMemory(eveDevice.device(), textureImageMemory, nullptr);
+
+		for (auto textureImage : textureImages)
+			vkDestroyImage(eveDevice.device(), textureImage, nullptr);
+
+		for (auto textureImageMemory : textureImageMemories)
+			vkFreeMemory(eveDevice.device(), textureImageMemory, nullptr);
+
 		freeCommandBuffers();
 	}
 
@@ -151,9 +158,9 @@ namespace eve {
 		vkCmdEndRenderPass(commandBuffer);
 	}
 
-	void EveRenderer::createTextureImage() {
+	void EveRenderer::createTextureImage(char *filename, VkImage *textureImage, VkDeviceMemory *textureImageMemory) {
 		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load("textures/core/blocks/stone.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		stbi_uc* pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		//stbi_uc* pixels = stbi_load("textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -198,22 +205,42 @@ namespace eve {
 
 		eveDevice.createImageWithInfo(imageInfo, 
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-			textureImage, 
-			textureImageMemory);
+			*textureImage, 
+			*textureImageMemory);
 
-		eveDevice.transitionImageLayout(textureImage, 
+		eveDevice.transitionImageLayout(*textureImage, 
 			VK_FORMAT_R8G8B8A8_SRGB, 
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		eveDevice.copyBufferToImage(stagingBuffer.getBuffer(), 
-			textureImage, 
+			*textureImage, 
 			static_cast<uint32_t>(texWidth), 
 			static_cast<uint32_t>(texHeight), 1);
 	}
 	
-	void EveRenderer::createTextureImageView() {
-		textureImageView = eveDevice.createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+	void EveRenderer::createTextureImages() {
+		std::vector<std::string> fileList{
+			"textures/core/blocks/water.png",
+			"textures/core/blocks/dirt.png",
+			"textures/core/blocks/stone.png"
+		};
+
+		for (std::string file : fileList) {
+			VkImage textureImage;
+			VkDeviceMemory textureImageMemory;
+
+			createTextureImage(file.data(), &textureImage, &textureImageMemory);
+			textureImages.push_back(textureImage);
+			textureImageMemories.push_back(textureImageMemory);
+		}
+	}
+
+	void EveRenderer::createTextureImageViews() {
+		for (VkImage textureImage : textureImages) {
+			VkImageView textureImageView = eveDevice.createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+			textureImageViews.push_back(textureImageView);
+		}
 	}
 
 	void EveRenderer::createTextureSampler() {
@@ -239,5 +266,4 @@ namespace eve {
 			throw std::runtime_error("failed to create texture sampler!");
     	}
 	}
-
 }
