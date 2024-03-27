@@ -1,4 +1,4 @@
-#include "simple_render_system.hpp"
+#include "base_render_system.hpp"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
@@ -21,19 +21,19 @@ namespace eve
 		glm::mat4 normalMatrix{1.f};
 	};
 
-	SimpleRenderSystem::SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain) 
+	BaseRenderSystem::BaseRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain) 
 	: eveDevice{device}, eveTerrain{terrain}
 	{
 		createPipelineLayout(globalSetLayout);
 		createPipeline(renderPass);
 	}
 
-	SimpleRenderSystem::~SimpleRenderSystem()
+	BaseRenderSystem::~BaseRenderSystem()
 	{
 		vkDestroyPipelineLayout(eveDevice.device(), pipelineLayout, nullptr);
 	}
 
-	void SimpleRenderSystem::switchRenderMode() {
+	void BaseRenderSystem::switchRenderMode() {
 		if (requestedRenderMode != currentRenderMode) {
 			vkDeviceWaitIdle(eveDevice.device());
 			evePipeline.swap(inactivePipeline);
@@ -41,7 +41,7 @@ namespace eve
 		}
 	}
 
-	void SimpleRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
+	void BaseRenderSystem::createPipelineLayout(VkDescriptorSetLayout globalSetLayout)
 	{
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -62,7 +62,7 @@ namespace eve
 		}
 	}
 
-	void SimpleRenderSystem::createPipeline(VkRenderPass renderPass)
+	void BaseRenderSystem::createPipeline(VkRenderPass renderPass)
 	{
 		assert(pipelineLayout != nullptr && "Cannot create pipeline before pipeline layout");
 
@@ -73,19 +73,19 @@ namespace eve
 		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 		evePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/simple_shader.vert.spv",
-			"shaders/simple_shader.frag.spv",
+			"shaders/base_shader.vert.spv",
+			"shaders/base_shader.frag.spv",
 			pipelineConfig);
 
 		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
 		inactivePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/simple_shader.vert.spv",
-			"shaders/simple_shader.frag.spv",
+			"shaders/base_shader.vert.spv",
+			"shaders/base_shader.frag.spv",
 			pipelineConfig);
 	}
 
-	void SimpleRenderSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo){
+	void BaseRenderSystem::update(FrameInfo &frameInfo, GlobalUbo &ubo){
 		auto rotateLight = glm::rotate(
 			glm::mat4(1.f),
 			frameInfo.frameTime,
@@ -104,7 +104,7 @@ namespace eve
 		}
 	}
 
-	void SimpleRenderSystem::renderGameObjects(FrameInfo &frameInfo)
+	void BaseRenderSystem::renderGameObjects(FrameInfo &frameInfo)
 	{
 		EASY_FUNCTION(profiler::colors::Blue);
 		EASY_BLOCK("renderGameObjects");
@@ -145,6 +145,8 @@ namespace eve
 		}
 		EASY_END_BLOCK;
 		
+		std::cout << std::endl << std::endl;
+
 		EASY_BLOCK("chunkObjects");
 		for (auto &kv : frameInfo.terrain.chunkMap) {
 			Chunk *chunk = kv.second;
@@ -159,7 +161,9 @@ namespace eve
 						SimplePushConstantData push{};
 						push.modelMatrix = obj.transform.mat4();
 						push.normalMatrix = obj.transform.normalMatrix();
-
+						std::cout << glm::to_string(push.modelMatrix) << std::endl;
+						std::cout << glm::to_string(push.normalMatrix) << std::endl;
+						std::cout << "-------------------------" << sizeof(float) << std::endl;
 						vkCmdPushConstants(
 							frameInfo.commandBuffer,
 							pipelineLayout,

@@ -26,7 +26,16 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-	mat4 modelMatrix; // projection * view * model
+	mat4 modelMatrix; // 
+	/*
+	*	1 0 0 a
+	* 	0 1 0 b
+	* 	0 0 1 0
+	*	x y z 1
+	// xyz: projection * view * model
+	// a: texure id
+	// b: bitshifted chunk relative voxel coord
+	*/
 	mat4 normalMatrix;
 } push;
 

@@ -18,16 +18,16 @@
 #include <easy/profiler.h>
 
 namespace eve {
-	class SimpleRenderSystem {
+	class BaseRenderSystem {
 		public:
 
-			SimpleRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain);
-			~SimpleRenderSystem();
+			BaseRenderSystem(EveDevice &device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout, EveTerrain &terrain);
+			~BaseRenderSystem();
 
 			void switchRenderMode();
 
-			SimpleRenderSystem(const SimpleRenderSystem&) = delete;
-			SimpleRenderSystem &operator=(const SimpleRenderSystem&) = delete;
+			BaseRenderSystem(const BaseRenderSystem&) = delete;
+			BaseRenderSystem &operator=(const BaseRenderSystem&) = delete;
 
 			void update(FrameInfo &frameInfo, GlobalUbo &ubo);
 			void renderGameObjects(FrameInfo &frameInfo);

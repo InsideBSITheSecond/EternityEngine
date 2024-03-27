@@ -22,7 +22,9 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 	int numLights;
 } ubo;
 
-layout(set = 0, binding = 2) uniform sampler2D texSampler;
+//layout(set = 0, binding = 2) uniform sampler2D texSampler;
+//layout(set = 0, binding = 2) uniform texture2D all_textures[];
+layout(set = 0, binding = 2) uniform sampler2D texSampler[];
 
 // MATRIX MULTIPLICATION ORDER MATTERS
 void main() {
@@ -52,7 +54,8 @@ void main() {
 		specularLight += intensity * blinnTerm;
 	}
 
-	//outColor = vec4(diffuseLight * fragColor + specularLight * fragColor, 1.0);
-	//outColor = vec4(fragUv, 0.0, 1.0);
-	outColor = vec4(texture(texSampler, fragUv) * vec4(diffuseLight * fragColor + specularLight * fragColor, 1.0)) * vec4(5.0);
+	outColor = vec4(
+		texture(texSampler[0], fragUv)												// base texture
+		* vec4(diffuseLight * fragColor + specularLight * fragColor, 1.0)) 			// lights
+		* vec4(5.0);																// light multiplier
 } 
