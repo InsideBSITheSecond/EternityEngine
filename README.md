@@ -36,7 +36,7 @@ very early work in progress
  - ImGUI + ImPlot
  - Easy Profiler
 
-## Build (only tested on linux)
+## Build (only tested on linux & prob broken, have fun)
 required :
  - cmake
  - a c++ compiler
