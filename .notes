@@ -1,10 +1,20 @@
+vulkan shading pipeline:
+
 input assembler -> vertex shader -> (tesselation / geometry shader) -> rasterization -> fragment shader -> color blending -> frame buffer
 	(fixed)				(prog)											(fixed)				(prog)			  (fixed)
 
 (fixed): little control
-(prog): runs custom c-like code on the gpu (shaders)
+(prog): runs glsl code on the gpu (shaders)
 
 --------------------------
 
+coordinate transition pipeline:
+
 object space -> world space -> camera space -> canonical view volume -> viewport
 	  (model transf)  (camera transf) (projection transf)    (viewport transf)
+
+--------------------------
+
+greedy meshing based on this paper:
+https://hal.science/hal-03161623/document
+

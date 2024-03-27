@@ -3,17 +3,14 @@ raytracing:
 	=> ray march in compute shaders
 
 voxel data to gpu:
-	octrees
-	=> pass that to gpu as a buffer somehow
+	since we have packed meshes and the 2 matrices are mostly empty (identity)
+	we can squeez some stuff in them like so:
+	
+		1 0 0 a
+		0 1 0 b
+		0 0 1 0
+		x y z 1
+	 xyz: projection * view * model
+	 a: texure id
+	 b: bitshifted chunk relative voxel coord
 
-
-
-
-
-
-MAKE IT POSSIBLE TO DISABLE PERSPECTIVE
-
-
-
-remeshing
-https://hal.science/hal-03161623/document
