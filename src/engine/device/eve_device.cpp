@@ -154,7 +154,9 @@ namespace eve
 			createInfo.pNext = nullptr;
 		}
 
-		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+		auto result = vkCreateInstance(&createInfo, nullptr, &instance);
+
+		if (result != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to create instance!");
 		}
@@ -230,6 +232,8 @@ namespace eve
 		//enable non-uniform indexing
 		indexingInfo.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 		indexingInfo.runtimeDescriptorArray = VK_TRUE;
+		//indexingInfo.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+		//indexingInfo.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
 		indexingInfo.descriptorBindingVariableDescriptorCount = VK_TRUE;
 		indexingInfo.descriptorBindingPartiallyBound = VK_TRUE;
 
@@ -366,6 +370,8 @@ namespace eve
 		{
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
+
+		//extensions.push_back(VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME);
 
 		return extensions;
 	}

@@ -419,11 +419,12 @@ namespace eve {
 		EASY_FUNCTION(profiler::colors::Red200);
 
 		glm::vec3 offset = octant->getChildLocalOffset();
+		int texOffset = abs((int)offset.x) % 2;
 		std::vector<EveModel::Vertex> quadVertices = {
-			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 0)},
-			{glm::vec3(1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1)},
-			{glm::vec3(-1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 1)},
-			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0)},
+			{glm::vec3(-1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 0), octant->voxel->id + texOffset - 1},
+			{glm::vec3(1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 1), octant->voxel->id + texOffset - 1},
+			{glm::vec3(-1, 0, 1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(1, 1), octant->voxel->id + texOffset - 1},
+			{glm::vec3(1, 0, -1), glm::vec3(0, 0, 0), glm::vec3(0, -1, 0), glm::vec2(0, 0), octant->voxel->id + texOffset - 1},
 		};
 		std::vector<uint32_t> quadIndices = {0, 1, 2, 1, 0, 3};
 

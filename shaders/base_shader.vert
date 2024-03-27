@@ -4,11 +4,13 @@ layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec3 normal;
 layout(location = 3) in vec2 uv;
+layout(location = 4) in int texId;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec3 fragPosWorld;
 layout(location = 2) out vec3 fragNormalWorld;
 layout(location = 3) out vec2 fragUv;
+layout(location = 4) out int fragTexId;
 
 struct PointLight {
 	vec4 position; //ignote w
@@ -26,17 +28,22 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 } ubo;
 
 layout(push_constant) uniform Push {
-	mat4 modelMatrix; // 
-	/*
-	*	1 0 0 a
-	* 	0 1 0 b
+	mat4 modelMatrix;
+	/*  matrix layout:
+	*	1 0 0 0
+	* 	0 1 0 0
 	* 	0 0 1 0
 	*	x y z 1
-	// xyz: projection * view * model
-	// a: texure id
-	// b: bitshifted chunk relative voxel coord
 	*/
 	mat4 normalMatrix;
+	/*  matrix layout:
+	//	this matrix can be used to pass along some data in the last row/column
+	*	1 0 0 0
+	* 	0 1 0 0
+	* 	0 0 1 0
+	*	0 0 0 1
+	*/
+	
 } push;
 
 const float AMBIENT = 0.05;
@@ -52,4 +59,5 @@ void main() {
 	
 	fragColor = lightIntensity * color;
 	fragUv = uv;
+	fragTexId = texId;
 }

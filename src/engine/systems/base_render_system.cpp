@@ -160,10 +160,20 @@ namespace eve
 					if (obj.model) {
 						SimplePushConstantData push{};
 						push.modelMatrix = obj.transform.mat4();
+
+						// this is placeholder bullshit values to illustrate that the normal matrix sides aren't used
+						push.normalMatrix[0].w = 69;
+						push.normalMatrix[1].w = 68;
+						push.normalMatrix[2].w = 67;
+						push.normalMatrix[3].w = 66;
+						push.normalMatrix[3].x = 65;
+						push.normalMatrix[3].y = 64;
+						push.normalMatrix[3].z = 63;
+
 						push.normalMatrix = obj.transform.normalMatrix();
-						std::cout << glm::to_string(push.modelMatrix) << std::endl;
-						std::cout << glm::to_string(push.normalMatrix) << std::endl;
-						std::cout << "-------------------------" << sizeof(float) << std::endl;
+						//std::cout << glm::to_string(push.modelMatrix) << std::endl;
+						//std::cout << glm::to_string(push.normalMatrix) << std::endl;
+						//std::cout << "-------------------------" << sizeof(float) << std::endl;
 						vkCmdPushConstants(
 							frameInfo.commandBuffer,
 							pipelineLayout,
