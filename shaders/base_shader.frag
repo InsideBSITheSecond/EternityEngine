@@ -11,7 +11,7 @@ layout(location = 4) flat in int fragTexId;
 layout (location = 0) out vec4 outColor;
 
 struct PointLight {
-	vec4 position; //ignote w
+	vec4 position; //ignore w
 	vec4 color; // w is intensity
 };
 
@@ -25,8 +25,6 @@ layout(set = 0, binding = 0) uniform GlobalUbo {
 	int numLights;
 } ubo;
 
-//layout(set = 0, binding = 2) uniform sampler2D texSampler;
-//layout(set = 0, binding = 2) uniform texture2D all_textures[];
 layout(set = 0, binding = 2) uniform sampler2D texSampler[];
 
 // MATRIX MULTIPLICATION ORDER MATTERS
