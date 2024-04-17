@@ -16,3 +16,12 @@
 [submodule "src/libs/JoltPhysics"]
 	path = src/libs/JoltPhysics
 	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "src/libs/luacpp"]
+	path = src/libs/luacpp
+	url = https://github.com/jordanvrtanoski/luacpp.git
+[submodule "src/libs/glfw"]
+	path = src/libs/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "src/libs/boost"]
+	path = src/libs/boost
+	url = https://github.com/boostorg/boost.git
