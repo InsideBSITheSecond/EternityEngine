@@ -50,6 +50,8 @@ namespace eve {
 
 			void createNewVoxel(std::string name, bool value);
 
+			void generateTopCap();
+
 			EveDevice &eveDevice;
 			EvePhysx &evePhysx;
 
@@ -60,11 +62,11 @@ namespace eve {
 
 			EveTerrainMeshingMode meshingMode = MESHING_CHUNK;
 
-			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "models/cube.obj", glm::vec3(1, 0, 0));
-			std::shared_ptr<EveModel> eveQuad = EveModel::createModelFromFile(eveDevice, "models/quad.obj", glm::vec3(1));
-			std::shared_ptr<EveModel> eveQuadR = EveModel::createModelFromFile(eveDevice, "models/quad.obj", glm::vec3(1, 0, 0));
-			std::shared_ptr<EveModel> eveQuadG = EveModel::createModelFromFile(eveDevice, "models/quad.obj", glm::vec3(0, 1, 0));
-			std::shared_ptr<EveModel> eveQuadB = EveModel::createModelFromFile(eveDevice, "models/quad.obj", glm::vec3(0, 0, 1));
+			std::shared_ptr<EveModel> eveCube = EveModel::createModelFromFile(eveDevice, "gamedata/core/models/cube.obj", glm::vec3(1, 0, 0));
+			std::shared_ptr<EveModel> eveQuad = EveModel::createModelFromFile(eveDevice, "gamedata/core/models/quad.obj", glm::vec3(1));
+			std::shared_ptr<EveModel> eveQuadR = EveModel::createModelFromFile(eveDevice, "gamedata/core/models/quad.obj", glm::vec3(1, 0, 0));
+			std::shared_ptr<EveModel> eveQuadG = EveModel::createModelFromFile(eveDevice, "gamedata/core/models/quad.obj", glm::vec3(0, 1, 0));
+			std::shared_ptr<EveModel> eveQuadB = EveModel::createModelFromFile(eveDevice, "gamedata/core/models/quad.obj", glm::vec3(0, 0, 1));
 
 			//std::vector<Chunk> refinementCandidates;
 			//std::vector<Chunk> refinementProcessed;

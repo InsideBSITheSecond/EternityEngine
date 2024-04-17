@@ -221,9 +221,9 @@ namespace eve {
 	
 	void EveRenderer::createTextureImages() {
 		std::vector<std::string> fileList{
-			"textures/core/blocks/stone.png",
-			"textures/core/blocks/dirt.png",
-			"textures/core/blocks/water.png"
+			"gamedata/core/textures/voxels/stone.png",
+			"gamedata/core/textures/voxels/dirt.png",
+			"gamedata/core/textures/fluids/water.png"
 		};
 
 		for (std::string file : fileList) {
