@@ -31,12 +31,7 @@ namespace std
 namespace eve
 {
 	EveDebug::EveDebug(EveWindow &window, EveRenderer &renderer, EveDevice &device, std::unique_ptr<EveDescriptorPool> &pool, EveTerrain &terrain)
-	: eveWindow{window}, eveRenderer{renderer}, eveDevice{device}, globalPool{pool}, eveTerrain{terrain}
-	{
-		//createVertexBuffers(builder.vertices);
-		//createIndexBuffers(builder.indices);
-
-	}
+		: eveWindow{window}, eveRenderer{renderer}, eveDevice{device}, globalPool{pool}, eveTerrain{terrain} {}
 
 	EveDebug::~EveDebug()
 	{
@@ -45,73 +40,6 @@ namespace eve
 		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
 	}
-
-	/*std::unique_ptr<EveDebug> EveDebug::createModelFromFile(EveDevice &device, const std::string &filepath)
-	{
-		Builder builder{};
-		builder.loadModel(filepath);
-		std::cout << "Vertex count: " << builder.vertices.size() << std::endl;
-		return std::make_unique<EveDebug>(device, builder);
-	}*/
-
-	/*void EveDebug::createVertexBuffers(const std::vector<Vertex> &vertices)
-	{
-		vertexCount = static_cast<uint32_t>(vertices.size());
-		assert(vertexCount >= 3 && "Vertex count must be at least 3");
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertexCount;
-
-		uint32_t vertexSize = sizeof(vertices[0]);
-		EveBuffer stagingBuffer{
-			eveDevice,
-			vertexSize,
-			vertexCount,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
-
-		stagingBuffer.map();
-		stagingBuffer.writeToBuffer((void *)vertices.data());
-
-		vertexBuffer = std::make_unique<EveBuffer>(
-			eveDevice,
-			vertexSize,
-			vertexCount,
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		eveDevice.copyBuffer(stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
-	}*/
-
-	/*void EveDebug::createIndexBuffers(const std::vector<uint32_t> &indices)
-	{
-		indexCount = static_cast<uint32_t>(indices.size());
-		hasIndexBuffer = indexCount > 0;
-
-		if (!hasIndexBuffer)
-			return;
-
-		VkDeviceSize bufferSize = sizeof(indices[0]) * indexCount;
-
-		uint32_t indexSize = sizeof(indices[0]);
-
-		EveBuffer stagingBuffer{
-			eveDevice,
-			indexSize,
-			indexCount,
-						VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT};
-
-		stagingBuffer.map();
-		stagingBuffer.writeToBuffer((void *)indices.data());
-
-		indexBuffer = std::make_unique<EveBuffer>(
-			eveDevice,
-			indexSize,
-			indexCount,
-			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		eveDevice.copyBuffer(stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
-	}*/
 
 	void EveDebug::draw(VkCommandBuffer commandBuffer)
 	{
@@ -137,69 +65,6 @@ namespace eve
 		return attributeDescriptions;
 	}
 
-	/*void EveDebug::Builder::loadModel(const std::string &filepath)
-	{
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
-
-		std::string enginePath = ENGINE_DIR + filepath;
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str()))
-		{
-			throw std::runtime_error(warn + err);
-		}
-
-		vertices.clear();
-		indices.clear();
-
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-		for (const auto &shape : shapes)
-		{
-			for (const auto &index : shape.mesh.indices)
-			{
-				Vertex vertex{};
-
-				if (index.vertex_index >= 0)
-				{
-					vertex.position = {
-						attrib.vertices[3 * index.vertex_index + 0],
-						attrib.vertices[3 * index.vertex_index + 1],
-						attrib.vertices[3 * index.vertex_index + 2]};
-
-					vertex.color = {
-						attrib.colors[3 * index.vertex_index + 0],
-						attrib.colors[3 * index.vertex_index + 1],
-						attrib.colors[3 * index.vertex_index + 2]};
-				}
-
-				if (index.normal_index >= 0)
-				{
-					vertex.normal = {
-						attrib.normals[3 * index.normal_index + 0],
-						attrib.normals[3 * index.normal_index + 1],
-						attrib.normals[3 * index.normal_index + 2]};
-				}
-
-				if (index.texcoord_index >= 0)
-				{
-					vertex.uv = {
-						attrib.texcoords[3 * index.texcoord_index + 0],
-						attrib.texcoords[3 * index.texcoord_index + 1],
-					};
-				}
-
-				if (uniqueVertices.count(vertex) == 0)
-				{
-					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-					vertices.push_back(vertex);
-				}
-				indices.push_back(uniqueVertices[vertex]);
-			}
-		}
-	}*/
-
 	void EveDebug::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
 		if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
@@ -214,6 +79,7 @@ namespace eve
 
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
@@ -246,6 +112,11 @@ namespace eve
 
 		if (open) {
 			EveDebug::drawControls();
+
+			EveDebug::drawInspector();
+			EveDebug::drawProjectTree();
+			EveDebug::drawExplorer();
+
 			if (showDemo) EveDebug::drawDemo();
 			if (showInfo) EveDebug::drawInfo(frameInfo);
 			if (showPlotDemo) EveDebug::drawPlotDemo();
@@ -267,6 +138,100 @@ namespace eve
 		ImGui::Checkbox("Infos", &showInfo);
 		ImGui::Checkbox("Demo", &showDemo);
 		ImGui::Checkbox("Plot Demo", &showPlotDemo);
+		ImGui::End();
+	}
+
+	void EveDebug::drawInspector() {
+		ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoTitleBar);
+
+		ImGui::End();
+	}
+
+	void EveDebug::drawProjectTree() {
+		ImGui::Begin("Project Tree", NULL, ImGuiWindowFlags_NoTitleBar);
+		if (ImGui::TreeNode("Project")) {
+
+			ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+			// 'selection_mask' is dumb representation of what may be user-side selection state.
+            //  You may retain selection state inside or outside your objects in whatever format you see fit.
+            // 'node_clicked' is temporary storage of what node we have clicked to process selection at the end
+            /// of the loop. May be a pointer to your own node type, etc.
+            static int selection_mask = (1 << 2);
+            int node_clicked = -1;
+
+			for (int i = 0; i < 6; i++) {
+				// Disable the default "open on single-click behavior" + set Selected flag according to our selection.
+                // To alter selection we use IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow doesn't alter selection.
+                ImGuiTreeNodeFlags node_flags = base_flags;
+                const bool is_selected = (selection_mask & (1 << i)) != 0;
+                if (is_selected)
+                    node_flags |= ImGuiTreeNodeFlags_Selected;
+
+				bool node_open = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, "Child %d", i);
+				if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+                	node_clicked = i;
+				if (node_open) {
+					ImGui::Text("UwU"); ImGui::SameLine();
+					if (ImGui::SmallButton("OwO")) {}
+					ImGui::TreePop();
+				}
+			}
+			if (node_clicked != -1) {
+				if (ImGui::GetIO().KeyCtrl)
+					selection_mask ^= (1 << node_clicked);
+				else
+					selection_mask = (1 << node_clicked);
+			}
+			
+			ImGui::TreePop();
+		}
+		ImGui::End();
+	}
+
+	void EveDebug::drawExplorer() {
+		std::vector<std::string> moduleList;
+		for (auto file : std::filesystem::directory_iterator("gamedata"))
+			moduleList.push_back(file.path().filename());
+
+		ImGui::Begin("Explorer", NULL, ImGuiWindowFlags_NoTitleBar);
+		ImVec2 button_size(60, 60);
+
+        ImGuiStyle& style = ImGui::GetStyle();
+        float window_visible_x2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+
+		static int item_current_idx = 0; // Here we store our selection data as an index. 
+
+		// Pass in the preview value visible before opening the combo (it could technically be different contents or not pulled from items[])
+        const char* combo_preview_value = moduleList[item_current_idx].c_str();
+		static ImGuiComboFlags flags = 0;
+		if (ImGui::BeginCombo("Modules", combo_preview_value, flags)) {
+			for (int m = 0; m < moduleList.size(); m++) {
+				const bool is_selected = (item_current_idx == m);
+				if (ImGui::Selectable(moduleList[m].c_str(), is_selected))
+					item_current_idx = m;
+
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		std::vector<std::string> fileList;
+		for (auto file : std::filesystem::directory_iterator("gamedata/" + moduleList[item_current_idx]))
+			fileList.push_back(file.path().filename());
+
+		for (int n = 0; n < fileList.size(); n++) {
+			ImGui::PushID(n);
+			ImGui::Button(fileList[n].c_str(), button_size);
+			float last_button_x2 = ImGui::GetItemRectMax().x;
+			float next_button_x2 = last_button_x2 + style.ItemSpacing.x + button_size.x; // Expected position if next button was on same line
+			if (n + 1 < fileList.size() && next_button_x2 < window_visible_x2)
+				ImGui::SameLine();
+			ImGui::PopID();
+		}
+
 		ImGui::End();
 	}
 

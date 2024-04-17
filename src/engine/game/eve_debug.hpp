@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <filesystem>
 #include <easy/profiler.h>
 
 #include <imgui_impl_vulkan.h>
@@ -73,6 +74,10 @@ namespace eve {
 			void drawPlotDemo();
 			void drawInfo(FrameInfo frameInfo);
 			void drawControls();
+
+			void drawInspector();
+			void drawProjectTree();
+			void drawExplorer();
 
 			EveWindow &eveWindow;
 			EveRenderer &eveRenderer;
