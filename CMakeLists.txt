@@ -3,8 +3,6 @@ set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
 find_package(Vulkan REQUIRED)
-find_package(glfw3 REQUIRED)
-find_package(Boost REQUIRED)
 
 # EVE
 file(GLOB_RECURSE
@@ -14,8 +12,8 @@ RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/**.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/engine/**.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/app.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/app.hpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/engine.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/engine.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/eve.cpp
 )
 message("SOURCE_FILES ${SOURCE_FILES}")
@@ -54,35 +52,20 @@ add_dependencies(${PROJECT_NAME} build_shaders)
 
 # copy data folders
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/models $<TARGET_FILE_DIR:${PROJECT_NAME}>/models)
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_SOURCE_DIR}/gamedata $<TARGET_FILE_DIR:${PROJECT_NAME}>/gamedata)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:${PROJECT_NAME}>/textures)
 
-# Nvidia Physx
-#option(PHYSX_BUILD_TYPE "The build type of PhysX, i.e., one of {debug, checked, profile, release}" "checked")
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/include/)
-#
-#if(CMAKE_BUILD_TYPE AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-#    message("Building snippet in debug configuration")
-#    add_compile_definitions(_DEBUG)
-#    target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/bin/linux.clang/checked) # This is the path where PhysX libraries are installed
-#else()
-#    message("Building snippet in release configuration with PhysX ${PHYSX_BUILD_TYPE} configuration")
-#    add_compile_definitions(NDEBUG)
-#    target_link_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/PhysX/physx/bin/linux.clang/${PHYSX_BUILD_TYPE}) # This is the path where PhysX libraries are installed
-#endif()
-#
-#target_link_libraries(${PROJECT_NAME}
-#    PhysXExtensions_static_64
-#    PhysX_static_64
-#    PhysXPvdSDK_static_64
-#    PhysXCommon_static_64
-#    PhysXFoundation_static_64
-#	PhysXGpu_64
-#)
+# ------     BOOST     -------
+set(BOOST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/boost)
+set(BOOST_INCLUDE_LIBRARIES asio system chrono thread)
+add_subdirectory(${BOOST_PATH} EXCLUDE_FROM_ALL)
+target_link_libraries(${PROJECT_NAME} Boost::asio Boost::system Boost::chrono Boost::thread)
+
+# ------     GLFW     -------
+set(GLFW_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/glfw)
+add_subdirectory(${GLFW_PATH})
+target_link_libraries(${PROJECT_NAME} glfw)
 
 # ------ Easy Profiler -------
 set(EP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/easy_profiler)
@@ -94,7 +77,7 @@ set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/JoltPhysics)
 add_subdirectory(${JOLT_PATH}/Build jolt)
 target_link_libraries(${PROJECT_NAME} Jolt)
 
-# ------ IMGUI -------
+# ------    IMGUI    -------
 set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/imgui)
 add_library(imgui
     ${IMGUI_PATH}/imgui.cpp
@@ -164,18 +147,8 @@ target_link_libraries(${PROJECT_NAME} implot)
 target_include_directories(${PROJECT_NAME} PRIVATE src/libs/implot)
 
 
-#target_include_directories(${PROJECT_NAME} PRIVATE src/libs/stb)
 
-# required glfw
-target_link_libraries(${PROJECT_NAME} glfw)
 
-# requires vulkan
-target_link_libraries(${PROJECT_NAME} vulkan)
-
-# requires boost
-target_link_libraries(${PROJECT_NAME} boost_thread)
-target_link_libraries(${PROJECT_NAME} boost_system)
-target_link_libraries(${PROJECT_NAME} boost_chrono)
 
 # linux specific libraries
 target_link_libraries(${PROJECT_NAME} dl)
@@ -183,11 +156,3 @@ target_link_libraries(${PROJECT_NAME} X11)
 target_link_libraries(${PROJECT_NAME} Xxf86vm)
 target_link_libraries(${PROJECT_NAME} Xi)
 target_link_libraries(${PROJECT_NAME} Xrandr)
-#target_link_libraries(${PROJECT_NAME} asan)
-
-
-
-
-
-
-
