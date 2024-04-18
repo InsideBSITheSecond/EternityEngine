@@ -33,7 +33,7 @@ very early work in progress
  - [glfw](https://github.com/glfw/glfw)
  - [imgui](https://github.com/ocornut/imgui)
  - [implot](https://github.com/epezent/implot)
- - [JoldPhysics](https://github.com/jrouwe/JoltPhysics)
+ - [JoltPhysics](https://github.com/jrouwe/JoltPhysics)
  - [luacpp](https://github.com/jordanvrtanoski/luacpp)
  - [PerlinNoise](https://github.com/Reputeless/PerlinNoise)
  - [stb](https://github.com/nothings/stb)
