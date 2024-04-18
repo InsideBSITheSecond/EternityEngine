@@ -28,36 +28,29 @@ very early work in progress
  - (data driven)
 
 ## Libraries
- - Vulkan
- - GLFW3
- - Boost
- - PerlinNoise
- - JoltPhysics
- - ImGUI + ImPlot
- - Easy Profiler
+ - [boost](https://github.com/boostorg/boost)
+ - [easy_profiler](https://github.com/yse/easy_profiler)
+ - [glfw](https://github.com/glfw/glfw)
+ - [imgui](https://github.com/ocornut/imgui)
+ - [implot](https://github.com/epezent/implot)
+ - [JoltPhysics](https://github.com/jrouwe/JoltPhysics)
+ - [luacpp](https://github.com/jordanvrtanoski/luacpp)
+ - [PerlinNoise](https://github.com/Reputeless/PerlinNoise)
+ - [stb](https://github.com/nothings/stb)
+ - [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)
 
 ## Build (only tested on linux)
-### (it is atm broken tho)
-list of broken things:
- - compile perlinnoise yourself, it's not compiled by the project.
- - you prob gonna need to tweak jolt's config to your cpu's instruction set
- - prob some other things
 
 required :
  - cmake
  - a c++ compiler
  - common sense
  - vulkan sdk (in system path)
- - glfw3 (in system path)
- - boost (in system path)
 
 ```
 git clone https://github.com/InsideBSITheSecond/EternityVoxelEngine.git
 cd EternityVoxelEngine
 git submodule update --init --recursive
-mkdir build
-cd build
-cmake -S ..
-cmake --build . --config Debug --target all --parallel
+cmake -S . -B build && cmake --build build --config Debug --target all --parallel
 ```
  
