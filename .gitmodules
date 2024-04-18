@@ -25,3 +25,6 @@
 [submodule "src/libs/boost"]
 	path = src/libs/boost
 	url = https://github.com/boostorg/boost.git
+[submodule "src/libs/stb"]
+	path = src/libs/stb
+	url = https://github.com/nothings/stb.git
