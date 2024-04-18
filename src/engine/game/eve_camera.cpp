@@ -5,6 +5,7 @@
 
 namespace eve
 {
+	EveCamera::EveCamera(EveDevice &device) : eveDevice{device} {};
 
 	void EveCamera::setOrthographicProjection(
 		float left, float right, float top, float bottom, float near, float far)

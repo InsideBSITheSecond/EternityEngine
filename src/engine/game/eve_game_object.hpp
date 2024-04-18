@@ -54,6 +54,10 @@ namespace eve
 		
 	};
 
+	struct RaycastComponent {
+		
+	};
+
 	class EveGameObject
 	{
 	public:
@@ -90,6 +94,7 @@ namespace eve
 		std::shared_ptr<GravityComponent> gravityComponent = nullptr;
 		std::unique_ptr<PointLightComponent> pointLightComponent = nullptr;
 		std::unique_ptr<DirectionalLightComponent> directionalLightComponent = nullptr;
+		std::unique_ptr<RaycastComponent> raycastComponent = nullptr;
 	private:
 		EveGameObject(id_t objId) : id{objId} {}
 

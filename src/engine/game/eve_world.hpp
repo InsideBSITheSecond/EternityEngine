@@ -40,7 +40,7 @@ namespace eve {
 
 		public: 
 			EveGameObject::Map gameObjects;
-			EveCamera camera{};
+			EveCamera camera{eveDevice};
 			EvePhysx physx{};
 			EveTerrain eveTerrain{eveDevice, physx};
 			EveDebug debugMenu{eveWindow, eveRenderer, eveDevice, globalPool, eveTerrain};
