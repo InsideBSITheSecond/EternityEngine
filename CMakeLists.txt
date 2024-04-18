@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.5)
 set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
@@ -74,6 +74,12 @@ target_link_libraries(${PROJECT_NAME} easy_profiler)
 
 # ------ Jolt Physics -------
 set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/JoltPhysics)
+option(USE_AVX "Enable AVX" OFF)
+option(USE_AVX2 "Enable AVX2" OFF)
+option(USE_LZCNT "Enable LZCNT" OFF)
+option(USE_TZCNT "Enable TZCNT" OFF)
+option(USE_F16C "Enable F16C" OFF)
+option(USE_FMADD "Enable FMADD" OFF)
 add_subdirectory(${JOLT_PATH}/Build jolt)
 target_link_libraries(${PROJECT_NAME} Jolt)
 
@@ -148,7 +154,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE src/libs/implot)
 
 
 
-
+target_include_directories(${PROJECT_NAME} PRIVATE src/libs/stb)
 
 # linux specific libraries
 target_link_libraries(${PROJECT_NAME} dl)

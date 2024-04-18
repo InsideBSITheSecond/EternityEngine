@@ -1,7 +1,7 @@
 #include "eve_renderer.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../libs/stb/stb_image.h"
+#include <stb_image.h>
 
 #include <array>
 #include <stdexcept>
