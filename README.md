@@ -28,13 +28,16 @@ very early work in progress
  - (data driven)
 
 ## Libraries
- - Vulkan
- - GLFW3
- - Boost
+ - boost
+ - easy_profiler
+ - glfw
+ - imgui
+ - implot
+ - JoldPhysics
+ - luacpp
  - PerlinNoise
- - JoltPhysics
- - ImGUI + ImPlot
- - Easy Profiler
+ - stb
+ - tinyobjloader
 
 ## Build (only tested on linux)
 ### (it is atm broken tho)
