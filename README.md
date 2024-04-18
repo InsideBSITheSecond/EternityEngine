@@ -18,14 +18,15 @@ very early work in progress
  - Directional Light
 
 ## Planned Features:
+ - Multiwindow & docking
  - Behavior Tree AI
  - Fluid System
  - FBX Support
  - Entity Component System
  - Dynamic Lights
+ - Data Driven
+ - Modding API
  - (netcode)
- - (modding api)
- - (data driven)
 
 ## Libraries
  - [boost](https://github.com/boostorg/boost)
