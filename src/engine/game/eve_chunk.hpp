@@ -147,6 +147,7 @@ namespace eve {
 
 			EveModel::Builder chunkBuilder;
 			std::shared_ptr<EveModel> chunkModel;
+			std::shared_ptr<EveModel> chunkCap;
 			std::shared_ptr<EveGameObject> chunkObject;
 
 			BodyID chunkPhysxObject;
@@ -167,6 +168,8 @@ namespace eve {
 			bool isCoordInChunk(glm::vec3 coord);
 			Octant *getSmallestContainerOf(glm::vec3 coord);
 
+			void generateTopCap();
+			
 			EveTerrain *eveTerrain;
 		private:
 	};

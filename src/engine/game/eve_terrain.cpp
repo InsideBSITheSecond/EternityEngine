@@ -357,4 +357,15 @@ namespace eve {
 
 		return child;
 	}*/
+
+	void EveTerrain::generateTopCap() {
+		for (auto kv : chunkMap) {
+			Chunk* chunk = kv.second;
+			
+			if (chunk->position.y + chunk->root->width / 2 <= playerCurrentLevel) {
+				chunk->generateTopCap();
+				
+			}
+		}
+	}
 }

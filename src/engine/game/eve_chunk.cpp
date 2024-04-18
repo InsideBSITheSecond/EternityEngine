@@ -8,8 +8,6 @@ namespace eve {
 		
 		container = containerChunk;
 		parent = parentOctant;
-
-		// (this block exists just for qol)
 		
 		for (int i = 0; i < 8; i++)
 			octants[i] = nullptr;
@@ -35,7 +33,6 @@ namespace eve {
 		if (isLeaf) {
 			float noise = terrain->perlin.octave2D_01((octant->position.x * 0.01), (octant->position.z * 0.01), 4);
 			float terrainHeight = std::lerp(terrain->minHeight, terrain->maxHeight, noise);
-			//std::cout << terrainHeight << " ";
 
 			if (terrainHeight > octant->position.y) {
 				voxel = terrain->voxelMap[0];
@@ -488,21 +485,18 @@ namespace eve {
 		if (eveTerrain->sidesToRemesh[5])
 			sidesToCheck.push_back(OctantSides::Far);
 
-		if (octant->isAllSame || octant->isLeaf || octant->forceRender) {
+		if ((octant->isAllSame || octant->isLeaf || octant->forceRender) 
+			//&& (octant->position.y >= eveTerrain->playerCurrentLevel - octant->width / 2)
+			) {
 			EASY_BLOCK("Worth considering for render");
 
 			for (const OctantSide side : sidesToCheck) {
 
-				if (octant->position == glm::vec3(7.5, -2.5, -38.5) && side.direction == -2) {
-					octant->marked = true;
-				}
-
-				if (side.direction == OctantSides::Top.direction) {
+				/*if (side.direction == OctantSides::Top.direction) {
 					if (octant->container->eveTerrain->playerCurrentLevel == floor(octant->position.y - octant->width)) {
 						octant->marked = true;
-						//std::cout << "m";
 					}
-				}
+				}*/
 
 				std::vector<Octant *> neighbors = octant->getNeighbors(side);
 
@@ -606,5 +600,9 @@ namespace eve {
 			<< std::endl;*/
 		
 		//std::cout << chunk->id << "e" << std::endl;
+	}
+
+	void Chunk::generateTopCap() {
+
 	}
 }
