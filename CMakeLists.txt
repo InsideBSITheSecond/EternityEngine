@@ -74,8 +74,11 @@ target_link_libraries(${PROJECT_NAME} easy_profiler)
 
 # ------ Jolt Physics -------
 set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/JoltPhysics)
+option(USE_SSE4_1 "Enable SSE4.1" OFF)
+option(USE_SSE4_2 "Enable SSE4.2" OFF)
 option(USE_AVX "Enable AVX" OFF)
 option(USE_AVX2 "Enable AVX2" OFF)
+option(USE_AVX512 "Enable AVX512" OFF)
 option(USE_LZCNT "Enable LZCNT" OFF)
 option(USE_TZCNT "Enable TZCNT" OFF)
 option(USE_F16C "Enable F16C" OFF)
