@@ -57,23 +57,30 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 
 
 # ------     BOOST     -------
-set(BOOST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/boost)
+if(MINGW)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(Boost_ARCHITECTURE "-x64")
+    else()
+        set(Boost_ARCHITECTURE "-x32")
+    endif()
+endif()
+set(BOOST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/boost)
 set(BOOST_INCLUDE_LIBRARIES asio system chrono thread)
 add_subdirectory(${BOOST_PATH} EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} Boost::asio Boost::system Boost::chrono Boost::thread)
 
 # ------     GLFW     -------
-set(GLFW_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/glfw)
+set(GLFW_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw)
 add_subdirectory(${GLFW_PATH})
 target_link_libraries(${PROJECT_NAME} glfw)
 
 # ------ Easy Profiler -------
-set(EP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/easy_profiler)
+set(EP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/easy_profiler)
 add_subdirectory(${EP_PATH} easy_profiler)
 target_link_libraries(${PROJECT_NAME} easy_profiler)
 
 # ------ Jolt Physics -------
-set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/JoltPhysics)
+set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/JoltPhysics)
 option(USE_SSE4_1 "Enable SSE4.1" OFF)
 option(USE_SSE4_2 "Enable SSE4.2" OFF)
 option(USE_AVX "Enable AVX" OFF)
@@ -87,7 +94,7 @@ add_subdirectory(${JOLT_PATH}/Build jolt)
 target_link_libraries(${PROJECT_NAME} Jolt)
 
 # ------    IMGUI    -------
-set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/imgui)
+set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 add_library(imgui
     ${IMGUI_PATH}/imgui.cpp
     ${IMGUI_PATH}/imgui_draw.cpp
@@ -104,8 +111,8 @@ target_include_directories(imgui
 # namespaced alias
 add_library(${PROJECT_NAME}::imgui ALIAS imgui)
 target_link_libraries(${PROJECT_NAME} imgui)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui/backends)
+target_include_directories(EternityVoxelEngine PRIVATE libs/imgui)
+target_include_directories(EternityVoxelEngine PRIVATE libs/imgui/backends)
 
 # ------ IMGUI VULKAN -------
 add_library(imgui-vulkan ${IMGUI_PATH}/backends/imgui_impl_vulkan.cpp)
@@ -134,7 +141,7 @@ add_library(${PROJECT_NAME}::imgui-glfw ALIAS imgui-glfw)
 target_link_libraries(${PROJECT_NAME} imgui-glfw)
 
 # ------ IMGUI IMPLOT -------
-set(IMPLOT ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/implot)
+set(IMPLOT ${CMAKE_CURRENT_SOURCE_DIR}/libs/implot)
 add_library(implot
     ${IMPLOT}/implot.cpp
     ${IMPLOT}/implot_items.cpp
@@ -153,11 +160,11 @@ target_link_libraries(implot
 # namespaced alias
 add_library(${PROJECT_NAME}::implot ALIAS implot)
 target_link_libraries(${PROJECT_NAME} implot)
-target_include_directories(${PROJECT_NAME} PRIVATE src/libs/implot)
+target_include_directories(${PROJECT_NAME} PRIVATE libs/implot)
 
 
 
-target_include_directories(${PROJECT_NAME} PRIVATE src/libs/stb)
+target_include_directories(${PROJECT_NAME} PRIVATE libs/stb)
 
 # linux specific libraries
 target_link_libraries(${PROJECT_NAME} dl)
