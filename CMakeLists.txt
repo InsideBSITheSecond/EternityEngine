@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
+# Set the output directory for the compiled .o files
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 find_package(Vulkan REQUIRED)
 
 # EVE
@@ -26,14 +31,9 @@ add_executable(${PROJECT_NAME}
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
 #target_compile_options(${PROJECT_NAME} PUBLIC "-fsanitize=address")
 
-# Set the output directory for the compiled .o files
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 # SHADERS
-set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
-set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gamedata/core/shaders")
+set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/gamedata/core/shaders")
 
 file(GLOB SHADERS "${SHADERS_IN_DIR}/**.vert" "${SHADERS_IN_DIR}/**.frag")
 file(MAKE_DIRECTORY ${SHADERS_OUT_DIR})
