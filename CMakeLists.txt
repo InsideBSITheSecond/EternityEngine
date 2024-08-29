@@ -7,8 +7,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-find_package(Vulkan REQUIRED)
-
 # EVE
 file(GLOB_RECURSE
 SOURCE_FILES
@@ -29,6 +27,9 @@ add_executable(${PROJECT_NAME}
 
 # Compile flags - you can customize these
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+if (MINGW)
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libgcc -static-libstdc++ -static")
+endif()
 #target_compile_options(${PROJECT_NAME} PUBLIC "-fsanitize=address")
 
 # SHADERS
@@ -55,6 +56,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_SOURCE_DIR}/gamedata $<TARGET_FILE_DIR:${PROJECT_NAME}>/gamedata)
 
+# ------     VULKAN     -------	
+if (MINGW)
+	message("Mingw detected. Going with windows-specific VulkanSDK path: $ENV{VULKAN_SDK}")
+	include_directories(/mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Include)
+	target_link_directories(${PROJECT_NAME} PUBLIC /mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Lib)
+	target_link_libraries(${PROJECT_NAME} vulkan-1)
+else ()
+	message("Linux detected. Going with system VulkanSDK path: $ENV{VULKAN_SDK}")
+	find_package(Vulkan REQUIRED)
+endif()
 
 # ------     BOOST     -------
 if(MINGW)
@@ -121,9 +132,18 @@ target_include_directories(imgui-vulkan
     $<BUILD_INTERFACE:${IMGUI_PATH}/backends>
     $<INSTALL_INTERFACE:imgui_impl_vulkan.h>
 )
+if(MINGW)
+target_link_libraries(imgui-vulkan
+    imgui)
+
+target_link_directories(imgui-vulkan PUBLIC /mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Lib)
+target_link_libraries(imgui-vulkan vulkan-1)
+else()
 target_link_libraries(imgui-vulkan
     imgui
     vulkan)
+endif()
+
 add_library(${PROJECT_NAME}::imgui-vulkan ALIAS imgui-vulkan)
 target_link_libraries(${PROJECT_NAME} imgui-vulkan)
 
@@ -167,8 +187,19 @@ target_include_directories(${PROJECT_NAME} PRIVATE libs/implot)
 target_include_directories(${PROJECT_NAME} PRIVATE libs/stb)
 
 # linux specific libraries
-target_link_libraries(${PROJECT_NAME} dl)
-target_link_libraries(${PROJECT_NAME} X11)
-target_link_libraries(${PROJECT_NAME} Xxf86vm)
-target_link_libraries(${PROJECT_NAME} Xi)
-target_link_libraries(${PROJECT_NAME} Xrandr)
+if (MINGW)
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		/usr/x86_64-w64-mingw32/bin/ $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+	
+	# copy data folders
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_BINARY_DIR}/easy_profiler/bin $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+else()
+	target_link_libraries(${PROJECT_NAME} dl)
+	target_link_libraries(${PROJECT_NAME} X11)
+	target_link_libraries(${PROJECT_NAME} Xxf86vm)
+	target_link_libraries(${PROJECT_NAME} Xi)
+	target_link_libraries(${PROJECT_NAME} Xrandr)
+endif()
