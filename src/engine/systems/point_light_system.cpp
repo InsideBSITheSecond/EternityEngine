@@ -64,8 +64,8 @@ namespace eve
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		evePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/point_light.vert.spv",
-			"shaders/point_light.frag.spv",
+			"../gamedata/core/shaders/point_light.vert.spv",
+			"../gamedata/core/shaders/point_light.frag.spv",
 			pipelineConfig);
 	}
 

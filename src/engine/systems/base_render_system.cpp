@@ -73,15 +73,15 @@ namespace eve
 		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 		evePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/base_shader.vert.spv",
-			"shaders/base_shader.frag.spv",
+			"../gamedata/core/shaders/base_shader.vert.spv",
+			"../gamedata/core/shaders/base_shader.frag.spv",
 			pipelineConfig);
 
 		pipelineConfig.rasterizationInfo.polygonMode = VK_POLYGON_MODE_LINE;
 		inactivePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/base_shader.vert.spv",
-			"shaders/base_shader.frag.spv",
+			"../gamedata/core/shaders/base_shader.vert.spv",
+			"../gamedata/core/shaders/base_shader.frag.spv",
 			pipelineConfig);
 	}
 
@@ -145,7 +145,7 @@ namespace eve
 		}
 		EASY_END_BLOCK;
 		
-		std::cout << std::endl << std::endl;
+		//std::cout << std::endl << std::endl;
 
 		EASY_BLOCK("chunkObjects");
 		for (auto &kv : frameInfo.terrain.chunkMap) {

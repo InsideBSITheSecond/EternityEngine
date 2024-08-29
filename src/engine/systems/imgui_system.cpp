@@ -66,8 +66,8 @@ namespace eve
 		pipelineConfig.pipelineLayout = pipelineLayout;
 		evePipeline = std::make_unique<EvePipeline>(
 			eveDevice,
-			"shaders/imgui.vert.spv",
-			"shaders/imgui.frag.spv",
+			"../gamedata/core/shaders/imgui.vert.spv",
+			"../gamedata/core/shaders/imgui.frag.spv",
 			pipelineConfig);
 	}
 

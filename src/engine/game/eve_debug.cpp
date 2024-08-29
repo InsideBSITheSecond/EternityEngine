@@ -10,6 +10,8 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "imgui_internal.h"
+
 #ifndef ENGINE_DIR
 #define ENGINE_DIR "../"
 #endif
@@ -80,6 +82,9 @@ namespace eve
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+		//io.ConfigViewportsNoAutoMerge = true;
+    	//io.ConfigViewportsNoTaskBarIcon = true;
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
@@ -110,19 +115,81 @@ namespace eve
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		if (open) {
+		static bool firstRun = true;
+		//if (!firstRun) ImGui_ImplVulkan_RemoveTexture(offscreenDS);
+		if (firstRun) {
+			firstRun = false;
+
+			ImVec2 workCenter = ImGui::GetMainViewport()->GetWorkCenter();
+
+			ImGuiID id = ImGui::GetID("MainWindowGroup");
+			ImGui::DockBuilderRemoveNode(id);
+			ImGui::DockBuilderAddNode(id);
+
+			ImVec2 size{600, 300};
+			ImVec2 nodePos{workCenter.x - size.x * 0.5f, workCenter.y - size.y * 0.5f};
+			ImGui::DockBuilderSetNodeSize(id, size);
+			ImGui::DockBuilderSetNodePos(id, nodePos);
+
+			ImGuiID dock1 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Left, 0.5f, nullptr, &id);
+			ImGuiID dock2 = ImGui::DockBuilderSplitNode(id, ImGuiDir_Right, 0.5f, nullptr, &id);
+			ImGuiID dock3 = ImGui::DockBuilderSplitNode(dock2, ImGuiDir_Down, 0.5f, nullptr, &dock2);
+
+			ImGui::DockBuilderDockWindow("One", dock1);
+			ImGui::DockBuilderDockWindow("Two", dock2);
+			ImGui::DockBuilderDockWindow("Three", dock3);
+
+			ImGui::DockBuilderFinish(id);
+		}
+
+		ImGui::Begin("One");
+		ImVec2 size = ImGui::GetContentRegionAvail();
+		//ImGui_ImplVulkan_RemoveTexture(offscreenDS);
+		//offscreenDS = ImGui_ImplVulkan_AddTexture(eveRenderer.textureSampler, eveRenderer.textureImageViews[0], VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		ImGui::Image((ImTextureID)offscreenDS, size);
+		ImGui::Text("UwU");
+		ImGui::End();
+
+		ImGui::Begin("Two");
+		ImGui::End();
+
+		ImGui::Begin("Three");
+		ImGui::End();
+
+		/*ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+		if (ImGui::GetFrameCount() == 1) {
+			ImGuiID viewport_id = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.3f, nullptr, &dockspace_id);
+			ImGui::DockBuilderDockWindow("Viewport", viewport_id);
+			auto mesh_node_id = dockspace_id;
+			ImGuiID demo_id = ImGui::DockBuilderSplitNode(mesh_node_id, ImGuiDir_Right, 0.3f, nullptr, &mesh_node_id);
+			ImGui::DockBuilderDockWindow("Demo", demo_id);
+			ImGui::DockBuilderDockWindow("MeshNode", mesh_node_id);
+		}*/
+
+		ImGui::ShowDemoWindow();
+		ImPlot::ShowDemoWindow();
+
+		/*if (open) {
 			EveDebug::drawControls();
 
-			EveDebug::drawInspector();
+			EveDebug::drawViewport(frameInfo);
 			EveDebug::drawProjectTree();
 			EveDebug::drawExplorer();
 
 			if (showDemo) EveDebug::drawDemo();
 			if (showInfo) EveDebug::drawInfo(frameInfo);
 			if (showPlotDemo) EveDebug::drawPlotDemo();
-		}
+		}*/
 
 		ImGui::Render();
+
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		// Update and Render additional Platform Windows
+        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
 	}
 
 	void EveDebug::drawDemo() {
@@ -141,14 +208,18 @@ namespace eve
 		ImGui::End();
 	}
 
-	void EveDebug::drawInspector() {
-		ImGui::Begin("Inspector", NULL, ImGuiWindowFlags_NoTitleBar);
-
+	void EveDebug::drawViewport(FrameInfo frameInfo) {
+		ImGui::Begin("Viewport");
+		//ImGui_ImplVulkan_AddTexture()
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		
+		//ImGui::Image(ds, viewportSize);
+		//ImGui_ImplVulkan_RemoveTexture(ds);
 		ImGui::End();
 	}
 
 	void EveDebug::drawProjectTree() {
-		ImGui::Begin("Project Tree", NULL, ImGuiWindowFlags_NoTitleBar);
+		ImGui::Begin("Project Tree");
 		if (ImGui::TreeNode("Project")) {
 
 			ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;

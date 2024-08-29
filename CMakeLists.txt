@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 set(PROJECT_NAME EternityVoxelEngine)
 project(${PROJECT_NAME} VERSION 0.1.0 LANGUAGES C CXX)
 
-find_package(Vulkan REQUIRED)
+# Set the output directory for the compiled .o files
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # EVE
 file(GLOB_RECURSE
@@ -24,16 +27,14 @@ add_executable(${PROJECT_NAME}
 
 # Compile flags - you can customize these
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
+if (MINGW)
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " -static-libgcc -static-libstdc++ -static")
+endif()
 #target_compile_options(${PROJECT_NAME} PUBLIC "-fsanitize=address")
 
-# Set the output directory for the compiled .o files
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/obj)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
 # SHADERS
-set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
-set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/shaders")
+set(SHADERS_IN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/gamedata/core/shaders")
+set(SHADERS_OUT_DIR "${CMAKE_BINARY_DIR}/gamedata/core/shaders")
 
 file(GLOB SHADERS "${SHADERS_IN_DIR}/**.vert" "${SHADERS_IN_DIR}/**.frag")
 file(MAKE_DIRECTORY ${SHADERS_OUT_DIR})
@@ -55,27 +56,47 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory
 		${CMAKE_SOURCE_DIR}/gamedata $<TARGET_FILE_DIR:${PROJECT_NAME}>/gamedata)
 
+# ------     VULKAN     -------	
+if (MINGW)
+	message("Mingw detected. Going with windows-specific VulkanSDK path: $ENV{VULKAN_SDK}")
+	include_directories(/mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Include)
+	target_link_directories(${PROJECT_NAME} PUBLIC /mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Lib)
+	target_link_libraries(${PROJECT_NAME} vulkan-1)
+else ()
+	message("Linux detected. Going with system VulkanSDK path: $ENV{VULKAN_SDK}")
+	find_package(Vulkan REQUIRED)
+endif()
 
 # ------     BOOST     -------
-set(BOOST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/boost)
+if(MINGW)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(Boost_ARCHITECTURE "-x64")
+    else()
+        set(Boost_ARCHITECTURE "-x32")
+    endif()
+endif()
+set(BOOST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/boost)
 set(BOOST_INCLUDE_LIBRARIES asio system chrono thread)
 add_subdirectory(${BOOST_PATH} EXCLUDE_FROM_ALL)
 target_link_libraries(${PROJECT_NAME} Boost::asio Boost::system Boost::chrono Boost::thread)
 
 # ------     GLFW     -------
-set(GLFW_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/glfw)
+set(GLFW_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw)
 add_subdirectory(${GLFW_PATH})
 target_link_libraries(${PROJECT_NAME} glfw)
 
 # ------ Easy Profiler -------
-set(EP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/easy_profiler)
+set(EP_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/easy_profiler)
 add_subdirectory(${EP_PATH} easy_profiler)
 target_link_libraries(${PROJECT_NAME} easy_profiler)
 
 # ------ Jolt Physics -------
-set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/JoltPhysics)
+set(JOLT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/JoltPhysics)
+option(USE_SSE4_1 "Enable SSE4.1" OFF)
+option(USE_SSE4_2 "Enable SSE4.2" OFF)
 option(USE_AVX "Enable AVX" OFF)
 option(USE_AVX2 "Enable AVX2" OFF)
+option(USE_AVX512 "Enable AVX512" OFF)
 option(USE_LZCNT "Enable LZCNT" OFF)
 option(USE_TZCNT "Enable TZCNT" OFF)
 option(USE_F16C "Enable F16C" OFF)
@@ -84,7 +105,7 @@ add_subdirectory(${JOLT_PATH}/Build jolt)
 target_link_libraries(${PROJECT_NAME} Jolt)
 
 # ------    IMGUI    -------
-set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/imgui)
+set(IMGUI_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libs/imgui)
 add_library(imgui
     ${IMGUI_PATH}/imgui.cpp
     ${IMGUI_PATH}/imgui_draw.cpp
@@ -101,8 +122,8 @@ target_include_directories(imgui
 # namespaced alias
 add_library(${PROJECT_NAME}::imgui ALIAS imgui)
 target_link_libraries(${PROJECT_NAME} imgui)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui)
-target_include_directories(EternityVoxelEngine PRIVATE src/libs/imgui/backends)
+target_include_directories(EternityVoxelEngine PRIVATE libs/imgui)
+target_include_directories(EternityVoxelEngine PRIVATE libs/imgui/backends)
 
 # ------ IMGUI VULKAN -------
 add_library(imgui-vulkan ${IMGUI_PATH}/backends/imgui_impl_vulkan.cpp)
@@ -111,9 +132,18 @@ target_include_directories(imgui-vulkan
     $<BUILD_INTERFACE:${IMGUI_PATH}/backends>
     $<INSTALL_INTERFACE:imgui_impl_vulkan.h>
 )
+if(MINGW)
+target_link_libraries(imgui-vulkan
+    imgui)
+
+target_link_directories(imgui-vulkan PUBLIC /mnt/backup/wine/vulkansdk/drive_c/VulkanSDK/1.3.290.0/Lib)
+target_link_libraries(imgui-vulkan vulkan-1)
+else()
 target_link_libraries(imgui-vulkan
     imgui
     vulkan)
+endif()
+
 add_library(${PROJECT_NAME}::imgui-vulkan ALIAS imgui-vulkan)
 target_link_libraries(${PROJECT_NAME} imgui-vulkan)
 
@@ -131,7 +161,7 @@ add_library(${PROJECT_NAME}::imgui-glfw ALIAS imgui-glfw)
 target_link_libraries(${PROJECT_NAME} imgui-glfw)
 
 # ------ IMGUI IMPLOT -------
-set(IMPLOT ${CMAKE_CURRENT_SOURCE_DIR}/src/libs/implot)
+set(IMPLOT ${CMAKE_CURRENT_SOURCE_DIR}/libs/implot)
 add_library(implot
     ${IMPLOT}/implot.cpp
     ${IMPLOT}/implot_items.cpp
@@ -150,15 +180,26 @@ target_link_libraries(implot
 # namespaced alias
 add_library(${PROJECT_NAME}::implot ALIAS implot)
 target_link_libraries(${PROJECT_NAME} implot)
-target_include_directories(${PROJECT_NAME} PRIVATE src/libs/implot)
+target_include_directories(${PROJECT_NAME} PRIVATE libs/implot)
 
 
 
-target_include_directories(${PROJECT_NAME} PRIVATE src/libs/stb)
+target_include_directories(${PROJECT_NAME} PRIVATE libs/stb)
 
 # linux specific libraries
-target_link_libraries(${PROJECT_NAME} dl)
-target_link_libraries(${PROJECT_NAME} X11)
-target_link_libraries(${PROJECT_NAME} Xxf86vm)
-target_link_libraries(${PROJECT_NAME} Xi)
-target_link_libraries(${PROJECT_NAME} Xrandr)
+if (MINGW)
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		/usr/x86_64-w64-mingw32/bin/ $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+	
+	# copy data folders
+	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_BINARY_DIR}/easy_profiler/bin $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+else()
+	target_link_libraries(${PROJECT_NAME} dl)
+	target_link_libraries(${PROJECT_NAME} X11)
+	target_link_libraries(${PROJECT_NAME} Xxf86vm)
+	target_link_libraries(${PROJECT_NAME} Xi)
+	target_link_libraries(${PROJECT_NAME} Xrandr)
+endif()

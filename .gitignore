@@ -1,6 +1,7 @@
 /out
 bin/
 build/
+build-win/
 /.vs
 CMakeSettings.json
 EternityVoxelEngine.code-workspace

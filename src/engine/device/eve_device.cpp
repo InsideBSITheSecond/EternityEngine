@@ -231,9 +231,8 @@ namespace eve
 
 		//enable non-uniform indexing
 		indexingInfo.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
+		indexingInfo.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
 		indexingInfo.runtimeDescriptorArray = VK_TRUE;
-		//indexingInfo.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
-		//indexingInfo.shaderStorageBufferArrayNonUniformIndexing = VK_TRUE;
 		indexingInfo.descriptorBindingVariableDescriptorCount = VK_TRUE;
 		indexingInfo.descriptorBindingPartiallyBound = VK_TRUE;
 

@@ -1,12 +1,12 @@
 # This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
 # See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
-name: Dev Builder
+name: unstable Builder
 
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "unstable" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "unstable" ]
 
 jobs:
   build:
@@ -83,9 +83,9 @@ jobs:
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        automatic_release_tag: "dev"
+        automatic_release_tag: "unstable"
         prerelease: true
-        title: "Dev Branch Build"
+        title: "unstable Branch Build"
         files: |
           build/EternityVoxelEngine
           license

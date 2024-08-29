@@ -18,3 +18,10 @@ object space -> world space -> camera space -> canonical view volume -> viewport
 greedy meshing based on this paper:
 https://hal.science/hal-03161623/document
 
+
+
+VulkanSDK fix for mingw ?
+https://github.com/ngscopeclient/scopehal-apps/blob/master/CMakeLists.txt
+https://github.com/ngscopeclient/scopehal-apps/pull/684/files#diff-1e7de1ae2d059d21e1dd75d5812d5a34b0222cef273b7c3a2af62eb747f9d20a
+https://www.google.com/search?client=firefox-b-d&q=workaround+find_package%28vulkan%29+cmake+mingw
+https://stackoverflow.com/questions/60721709/setting-up-a-vulkan-project-with-cmake-on-windows

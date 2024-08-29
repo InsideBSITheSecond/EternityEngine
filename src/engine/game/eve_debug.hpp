@@ -75,7 +75,7 @@ namespace eve {
 			void drawInfo(FrameInfo frameInfo);
 			void drawControls();
 
-			void drawInspector();
+			void drawViewport(FrameInfo frameInfo);
 			void drawProjectTree();
 			void drawExplorer();
 
@@ -84,5 +84,7 @@ namespace eve {
 			EveDevice &eveDevice;
 			EveTerrain &eveTerrain;
 			std::unique_ptr<EveDescriptorPool> &globalPool;
+
+			VkDescriptorSet offscreenDS;
 	};
 }
